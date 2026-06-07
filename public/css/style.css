@@ -180,7 +180,8 @@ select.form-input { cursor: pointer; }
 .repo-meta-stat { display: flex; align-items: center; gap: 4px; }
 
 /* ── Repo page ───────────────────────────────────────────────────────────── */
-.repo-page { padding: 24px 0; }
+/* Repo pages are NOT wrapped in .container — they fill the full viewport */
+.repo-page { padding: 24px 32px; width: 100%; max-width: none; box-sizing: border-box; }
 .repo-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 8px; }
 .repo-breadcrumb { display: flex; align-items: center; gap: 6px; font-size: 18px; flex-wrap: wrap; }
 .repo-owner { color: var(--blue); font-weight: 400; }
@@ -188,13 +189,13 @@ select.form-input { cursor: pointer; }
 .repo-name-link { color: var(--blue); }
 .repo-description { font-size: 14px; color: var(--text-muted); margin-bottom: 16px; }
 .repo-actions { display: flex; gap: 6px; }
-.repo-tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border); margin-bottom: 24px; overflow-x: auto; }
+.repo-tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border); margin-bottom: 24px; overflow-x: auto; width: 100%; }
 .repo-tab { display: flex; align-items: center; gap: 6px; padding: 10px 16px; font-size: 13px; color: var(--text-muted); text-decoration: none; border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap; transition: color .15s; }
 .repo-tab:hover { color: var(--text); text-decoration: none; }
 .repo-tab.active { color: var(--text); border-bottom-color: var(--accent); font-weight: 500; }
 .repo-body { width: 100%; }
-.repo-main-content { width: 100%; }
-.repo-file-area { width: 100%; }
+.repo-main-content { width: 100%; display: block; }
+.repo-file-area { width: 100%; display: block; }
 
 /* ── File toolbar ────────────────────────────────────────────────────────── */
 .file-area-toolbar { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius) var(--radius) 0 0; gap: 8px; }
