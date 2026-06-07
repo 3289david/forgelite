@@ -1,0 +1,30 @@
+<%- include('_head', { title: 'Settings' }) %>
+<main class="container" style="max-width:600px;padding-top:40px">
+  <h1>Profile settings</h1>
+  <% if (success) { %><div class="alert alert-success"><%= success %></div><% } %>
+  <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
+  <form method="POST" action="/settings" class="form-card">
+    <div class="form-group">
+      <label>Username</label>
+      <input type="text" class="form-input" value="<%= user.username %>" disabled>
+    </div>
+    <div class="form-group">
+      <label>Email</label>
+      <input type="text" class="form-input" value="<%= user.email %>" disabled>
+    </div>
+    <div class="form-group">
+      <label for="bio">Bio</label>
+      <textarea id="bio" name="bio" class="form-input" rows="3"><%= user.bio %></textarea>
+    </div>
+    <div class="form-group">
+      <label for="website">Website</label>
+      <input type="url" id="website" name="website" class="form-input" value="<%= user.website %>">
+    </div>
+    <div class="form-group">
+      <label for="location">Location</label>
+      <input type="text" id="location" name="location" class="form-input" value="<%= user.location %>">
+    </div>
+    <button type="submit" class="btn btn-accent">Save changes</button>
+  </form>
+</main>
+<%- include('_foot') %>

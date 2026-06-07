@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= typeof title !== 'undefined' ? title + ' — ' : '' %>ForgeLite</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="icon" href="/logo.svg" type="image/svg+xml">
+</head>
+<body>
+<nav class="navbar">
+  <div class="nav-inner">
+    <a class="nav-brand" href="/">
+      <img src="/logo.svg" alt="ForgeLite" width="28" height="28">
+      <span>ForgeLite</span>
+    </a>
+    <div class="nav-links">
+      <a href="/explore" class="nav-link">Explore</a>
+    </div>
+    <div class="nav-actions">
+      <% if (user) { %>
+        <a href="/new" class="btn btn-sm btn-accent">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M7.75 2a.75.75 0 01.75.75V7h4.25a.75.75 0 010 1.5H8.5v4.25a.75.75 0 01-1.5 0V8.5H2.75a.75.75 0 010-1.5H7V2.75A.75.75 0 017.75 2z"/></svg>
+          New
+        </a>
+        <div class="nav-user-menu">
+          <a href="/<%= user.username %>" class="nav-avatar" title="<%= user.username %>">
+            <div class="avatar avatar-sm"><%= user.username.slice(0,1).toUpperCase() %></div>
+          </a>
+          <div class="nav-dropdown">
+            <a href="/<%= user.username %>">Profile</a>
+            <a href="/settings">Settings</a>
+            <hr>
+            <form method="POST" action="/logout"><button type="submit" class="dropdown-btn">Sign out</button></form>
+          </div>
+        </div>
+      <% } else { %>
+        <a href="/login" class="btn btn-sm btn-ghost">Sign in</a>
+        <a href="/register" class="btn btn-sm btn-accent">Register</a>
+      <% } %>
+    </div>
+  </div>
+</nav>

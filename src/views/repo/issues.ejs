@@ -1,0 +1,53 @@
+<%- include('../_head', { title: 'Issues — ' + owner + '/' + repoName }) %>
+<main class="container repo-page">
+  <%- include('./_repo-header') %>
+  <%- include('./_repo-tabs', { active: 'issues' }) %>
+  <div class="repo-body">
+    <div class="issues-toolbar">
+      <div class="issues-filter">
+        <a href="?status=open" class="filter-tab <%= status === 'open' ? 'active' : '' %>">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M8 9.5a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/><path fill-rule="evenodd" d="M8 0a8 8 0 100 16A8 8 0 008 0zM1.5 8a6.5 6.5 0 1113 0 6.5 6.5 0 01-13 0z"/></svg>
+          Open <span class="tab-count"><%= openCount %></span>
+        </a>
+        <a href="?status=closed" class="filter-tab <%= status === 'closed' ? 'active' : '' %>">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M13.78 4.22a.75.75 0 010 1.06l-7.25 7.25a.75.75 0 01-1.06 0L2.22 9.28a.75.75 0 011.06-1.06L6 10.94l6.72-6.72a.75.75 0 011.06 0z"/></svg>
+          Closed <span class="tab-count"><%= closedCount %></span>
+        </a>
+      </div>
+      <% if (user) { %>
+      <a href="/<%= owner %>/<%= repoName %>/issues/new" class="btn btn-sm btn-accent">New issue</a>
+      <% } %>
+    </div>
+    <% if (issues.length === 0) { %>
+    <div class="empty-state">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="M12 8v4M12 16h.01"/></svg>
+      <p>No <%= status %> issues.</p>
+      <% if (user && status === 'open') { %><a href="/<%= owner %>/<%= repoName %>/issues/new" class="btn btn-sm btn-accent">Open an issue</a><% } %>
+    </div>
+    <% } else { %>
+    <div class="issue-list">
+      <% issues.forEach(issue => { %>
+      <div class="issue-row">
+        <div class="issue-status-icon <%= issue.status === 'open' ? 'open' : 'closed' %>">
+          <% if (issue.status === 'open') { %>
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 9.5a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/><path fill-rule="evenodd" d="M8 0a8 8 0 100 16A8 8 0 008 0zM1.5 8a6.5 6.5 0 1113 0 6.5 6.5 0 01-13 0z"/></svg>
+          <% } else { %>
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M11.28 6.78a.75.75 0 00-1.06-1.06L7.25 8.69 5.78 7.22a.75.75 0 00-1.06 1.06l2 2a.75.75 0 001.06 0l3.5-3.5z"/><path fill-rule="evenodd" d="M16 8A8 8 0 110 8a8 8 0 0116 0zm-1.5 0a6.5 6.5 0 11-13 0 6.5 6.5 0 0113 0z"/></svg>
+          <% } %>
+        </div>
+        <div class="issue-content">
+          <a href="/<%= owner %>/<%= repoName %>/issues/<%= issue.number %>" class="issue-title">#<%= issue.number %> <%= issue.title %></a>
+          <div class="issue-meta">
+            Opened <span><%= timeAgo(issue.created_at) %></span> by <a href="/<%= issue.author_name %>"><%= issue.author_name %></a>
+            <% if (issue.comment_count > 0) { %>
+            · <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path fill-rule="evenodd" d="M2.75 2.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h2a.75.75 0 01.75.75v2.19l2.72-2.72a.75.75 0 01.53-.22h4.5a.25.25 0 00.25-.25v-7.5a.25.25 0 00-.25-.25H2.75zM1 2.75C1 1.784 1.784 1 2.75 1h10.5c.966 0 1.75.784 1.75 1.75v7.5A1.75 1.75 0 0113.25 12H9.06l-2.573 2.573A1.457 1.457 0 014 13.543V12H2.75A1.75 1.75 0 011 10.25v-7.5z"/></svg> <%= issue.comment_count %>
+            <% } %>
+          </div>
+        </div>
+      </div>
+      <% }) %>
+    </div>
+    <% } %>
+  </div>
+</main>
+<%- include('../_foot') %>

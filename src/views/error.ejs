@@ -1,0 +1,9 @@
+<%- include('_head', { title: String(code) }) %>
+<main class="container error-page">
+  <div class="error-inner">
+    <div class="error-code"><%= code %></div>
+    <p class="error-msg"><%= message %></p>
+    <a href="/" class="btn btn-ghost">Go home</a>
+  </div>
+</main>
+<%- include('_foot') %>

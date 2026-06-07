@@ -1,0 +1,39 @@
+<%- include('../_head', { title: 'Commits — ' + owner + '/' + repoName }) %>
+<main class="container repo-page">
+  <%- include('./_repo-header') %>
+  <%- include('./_repo-tabs', { active: 'code' }) %>
+  <div class="repo-body">
+    <div class="commits-header">
+      <h2 class="section-title" style="margin:0">Commits on <code><%= branch %></code></h2>
+      <div class="branch-selector">
+        <select class="branch-select" onchange="location.href='/<%= owner %>/<%= repoName %>/commits/'+this.value">
+          <% branches.forEach(b => { %>
+          <option value="<%= b %>" <%= b === branch ? 'selected' : '' %>><%= b %></option>
+          <% }) %>
+        </select>
+      </div>
+    </div>
+    <% if (commits.length === 0) { %>
+    <div class="empty-state"><p>No commits yet.</p></div>
+    <% } %>
+    <div class="commit-list">
+      <% commits.forEach(commit => { %>
+      <div class="commit-row">
+        <div class="commit-info">
+          <div class="commit-author-avatar"><%= commit.author.slice(0,1).toUpperCase() %></div>
+          <div class="commit-details">
+            <div class="commit-message"><%= commit.message %></div>
+            <div class="commit-byline">
+              <strong><%= commit.author %></strong> committed <span><%= timeAgo(commit.date) %></span>
+            </div>
+          </div>
+        </div>
+        <div class="commit-hash-area">
+          <code class="commit-hash-full"><%= commit.shortHash %></code>
+        </div>
+      </div>
+      <% }) %>
+    </div>
+  </div>
+</main>
+<%- include('../_foot') %>

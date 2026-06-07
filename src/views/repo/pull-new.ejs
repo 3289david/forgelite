@@ -1,0 +1,41 @@
+<%- include('../_head', { title: 'New Pull Request — ' + owner + '/' + repoName }) %>
+<main class="container repo-page">
+  <%- include('./_repo-header') %>
+  <%- include('./_repo-tabs', { active: 'pulls' }) %>
+  <div class="repo-body">
+    <h2 class="section-title">Open a new pull request</h2>
+    <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
+    <form method="POST" action="/<%= owner %>/<%= repoName %>/pulls/new" class="form-card">
+      <div class="form-row">
+        <div class="form-group" style="flex:1">
+          <label for="base_branch">Base branch (merge into) <span class="required">*</span></label>
+          <select id="base_branch" name="base_branch" class="form-input">
+            <% branches.forEach(b => { %>
+            <option value="<%= b %>" <%= b === defaultBranch ? 'selected' : '' %>><%= b %></option>
+            <% }) %>
+          </select>
+        </div>
+        <span class="form-row-sep">←</span>
+        <div class="form-group" style="flex:1">
+          <label for="head_branch">Compare branch (from) <span class="required">*</span></label>
+          <select id="head_branch" name="head_branch" class="form-input">
+            <% branches.forEach(b => { %>
+            <option value="<%= b %>" <%= b !== defaultBranch ? 'selected' : '' %>><%= b %></option>
+            <% }) %>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="title">Title <span class="required">*</span></label>
+        <input type="text" id="title" name="title" class="form-input" required autofocus>
+      </div>
+      <div class="form-group">
+        <label for="body">Description</label>
+        <textarea id="body" name="body" class="form-input" rows="8" placeholder="Describe your changes... (Markdown supported)"></textarea>
+      </div>
+      <button type="submit" class="btn btn-accent">Create pull request</button>
+      <a href="/<%= owner %>/<%= repoName %>/pulls" class="btn btn-ghost">Cancel</a>
+    </form>
+  </div>
+</main>
+<%- include('../_foot') %>

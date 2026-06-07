@@ -1,0 +1,55 @@
+<%- include('../_head', { title: 'Pull Requests — ' + owner + '/' + repoName }) %>
+<main class="container repo-page">
+  <%- include('./_repo-header') %>
+  <%- include('./_repo-tabs', { active: 'pulls' }) %>
+  <div class="repo-body">
+    <div class="issues-toolbar">
+      <div class="issues-filter">
+        <a href="?status=open" class="filter-tab <%= status === 'open' ? 'active' : '' %>">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M7.177 3.073L9.573.677A.25.25 0 0110 .854v4.792a.25.25 0 01-.427.177L7.177 3.427a.25.25 0 010-.354zM3.75 2.5a.75.75 0 100 1.5.75.75 0 000-1.5zm-2.25.75a2.25 2.25 0 113 2.122v5.256a2.251 2.251 0 11-1.5 0V5.372A2.25 2.25 0 011.5 3.25zM11 2.5h-1V4h1a1 1 0 011 1v5.628a2.251 2.251 0 101.5 0V5A2.5 2.5 0 0011 2.5zm1 10.25a.75.75 0 111.5 0 .75.75 0 01-1.5 0zM3.75 12a.75.75 0 100 1.5.75.75 0 000-1.5z"/></svg>
+          Open <span class="tab-count"><%= openCount %></span>
+        </a>
+        <a href="?status=closed" class="filter-tab <%= status !== 'open' ? 'active' : '' %>">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M13.78 4.22a.75.75 0 010 1.06l-7.25 7.25a.75.75 0 01-1.06 0L2.22 9.28a.75.75 0 011.06-1.06L6 10.94l6.72-6.72a.75.75 0 011.06 0z"/></svg>
+          Closed <span class="tab-count"><%= closedCount %></span>
+        </a>
+      </div>
+      <% if (user) { %>
+      <a href="/<%= owner %>/<%= repoName %>/pulls/new" class="btn btn-sm btn-accent">New pull request</a>
+      <% } %>
+    </div>
+    <% if (prs.length === 0) { %>
+    <div class="empty-state">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 3v12M6 15a3 3 0 100 6 3 3 0 000-6zM6 3a3 3 0 100-0 3 3 0 000 0zM18 6a3 3 0 100 6 3 3 0 000-6zM18 9H6"/></svg>
+      <p>No <%= status %> pull requests.</p>
+    </div>
+    <% } else { %>
+    <div class="issue-list">
+      <% prs.forEach(pr => { %>
+      <div class="issue-row">
+        <div class="issue-status-icon <%= pr.status === 'open' ? 'open' : pr.status === 'merged' ? 'merged' : 'closed' %>">
+          <% if (pr.status === 'open') { %>
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M7.177 3.073L9.573.677A.25.25 0 0110 .854v4.792a.25.25 0 01-.427.177L7.177 3.427a.25.25 0 010-.354zM3.75 2.5a.75.75 0 100 1.5.75.75 0 000-1.5zm-2.25.75a2.25 2.25 0 113 2.122v5.256a2.251 2.251 0 11-1.5 0V5.372A2.25 2.25 0 011.5 3.25zM11 2.5h-1V4h1a1 1 0 011 1v5.628a2.251 2.251 0 101.5 0V5A2.5 2.5 0 0011 2.5zm1 10.25a.75.75 0 111.5 0 .75.75 0 01-1.5 0zM3.75 12a.75.75 0 100 1.5.75.75 0 000-1.5z"/></svg>
+          <% } else if (pr.status === 'merged') { %>
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M5.45 5.154A4.25 4.25 0 019.25 7h1.378a2.251 2.251 0 110 1.5H9.25A5.75 5.75 0 015.75 10.607a3.75 3.75 0 10-1.5.148V5.254a3.75 3.75 0 101.2-.1zM4.25 13.5a2.25 2.25 0 110-4.5 2.25 2.25 0 010 4.5zm8.5-4.5a.75.75 0 110 1.5.75.75 0 010-1.5zM5.5 3.25a2.25 2.25 0 10-4.5 0 2.25 2.25 0 004.5 0z"/></svg>
+          <% } else { %>
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M3.25 1A2.25 2.25 0 001 3.25v9.5A2.25 2.25 0 003.25 15h9.5A2.25 2.25 0 0015 12.75v-9.5A2.25 2.25 0 0012.75 1h-9.5zM5.5 7.25a.75.75 0 010-1.5h5a.75.75 0 010 1.5h-5z"/></svg>
+          <% } %>
+        </div>
+        <div class="issue-content">
+          <a href="/<%= owner %>/<%= repoName %>/pulls/<%= pr.number %>" class="issue-title">
+            #<%= pr.number %> <%= pr.title %>
+          </a>
+          <div class="issue-meta">
+            <code><%= pr.head_branch %></code> → <code><%= pr.base_branch %></code>
+            · by <a href="/<%= pr.author_name %>"><%= pr.author_name %></a>
+            · <%= timeAgo(pr.created_at) %>
+          </div>
+        </div>
+      </div>
+      <% }) %>
+    </div>
+    <% } %>
+  </div>
+</main>
+<%- include('../_foot') %>

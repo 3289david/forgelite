@@ -1,0 +1,48 @@
+<%- include('../_head', { title: owner + '/' + repoName }) %>
+<main class="container repo-page">
+  <%- include('./_repo-header') %>
+  <%- include('./_repo-tabs', { active: 'code' }) %>
+  <div class="repo-body">
+    <div class="file-path-bar">
+      <a href="/<%= owner %>/<%= repoName %>"><%= repoName %></a>
+      <% breadcrumbs.forEach(bc => { %>
+        <span class="path-sep">/</span>
+        <a href="/<%= owner %>/<%= repoName %>/tree/<%= branch %>/<%= bc.path %>"><%= bc.name %></a>
+      <% }) %>
+    </div>
+    <div class="file-tree">
+      <% if (!dirPath) { %>
+      <!-- Root shows parent link only if in subdir, which here it isn't -->
+      <% } else { %>
+      <div class="file-tree-row">
+        <div class="file-tree-name">
+          <svg class="file-icon" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M2.5 13.5A.5.5 0 013 13h10a.5.5 0 010 1H3a.5.5 0 01-.5-.5zM13.354 3.354l-8 8a.5.5 0 01-.708 0l-4-4a.5.5 0 11.708-.708L5 10.293l7.646-7.647a.5.5 0 01.708.708z"/></svg>
+          <a href="/<%= owner %>/<%= repoName %>/tree/<%= branch %>/<%= dirPath.split('/').slice(0,-1).join('/') %>">..</a>
+        </div>
+        <div class="file-tree-commit"></div>
+      </div>
+      <% } %>
+      <% tree.filter(e => e.type === 'tree').forEach(entry => {
+           const entryPath = dirPath ? dirPath + '/' + entry.name : entry.name; %>
+      <div class="file-tree-row">
+        <div class="file-tree-name">
+          <svg class="file-icon folder-icon" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M1.75 1A1.75 1.75 0 000 2.75v10.5C0 14.216.784 15 1.75 15h12.5A1.75 1.75 0 0016 13.25v-8.5A1.75 1.75 0 0014.25 3H7.5a.25.25 0 01-.2-.1l-.9-1.2c-.33-.44-.85-.7-1.4-.7h-3.25z"/></svg>
+          <a href="/<%= owner %>/<%= repoName %>/tree/<%= branch %>/<%= entryPath %>"><%= entry.name %></a>
+        </div>
+        <div class="file-tree-commit"></div>
+      </div>
+      <% }) %>
+      <% tree.filter(e => e.type === 'blob').forEach(entry => {
+           const entryPath = dirPath ? dirPath + '/' + entry.name : entry.name; %>
+      <div class="file-tree-row">
+        <div class="file-tree-name">
+          <svg class="file-icon" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M2 1.75C2 .784 2.784 0 3.75 0h6.586c.464 0 .909.184 1.237.513l2.914 2.914c.329.328.513.773.513 1.237v9.586A1.75 1.75 0 0113.25 16h-9.5A1.75 1.75 0 012 14.25V1.75zm1.75-.25a.25.25 0 00-.25.25v12.5c0 .138.112.25.25.25h9.5a.25.25 0 00.25-.25V6h-2.75A1.75 1.75 0 019 4.25V1.5H3.75zm6.75.5v2.25c0 .138.112.25.25.25h2.25L10.5 2z"/></svg>
+          <a href="/<%= owner %>/<%= repoName %>/blob/<%= branch %>/<%= entryPath %>"><%= entry.name %></a>
+        </div>
+        <div class="file-tree-commit"></div>
+      </div>
+      <% }) %>
+    </div>
+  </div>
+</main>
+<%- include('../_foot') %>

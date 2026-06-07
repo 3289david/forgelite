@@ -1,0 +1,134 @@
+<%- include('../_head', { title: owner + '/' + repoName }) %>
+<main class="container repo-page">
+
+  <%- include('./_repo-header') %>
+
+  <%- include('./_repo-tabs', { active: 'code' }) %>
+
+  <div class="repo-body">
+    <% if (empty) { %>
+    <div class="empty-repo">
+      <h3>Get started</h3>
+      <p>Push your first commit to this repository:</p>
+      <pre class="clone-instructions">git clone <%= cloneUrl %>
+cd <%= repoName %>
+echo "# <%= repoName %>" >> README.md
+git add README.md
+git commit -m "Initial commit"
+git push origin main</pre>
+    </div>
+    <% } else { %>
+
+    <div class="repo-main-content">
+      <div class="repo-file-area">
+        <!-- Branch + Clone bar -->
+        <div class="file-area-toolbar">
+          <div class="branch-selector">
+            <select class="branch-select" onchange="location.href='/<%= owner %>/<%= repoName %>?branch='+this.value">
+              <% branches.forEach(b => { %>
+              <option value="<%= b %>" <%= b === currentBranch ? 'selected' : '' %>><%= b %></option>
+              <% }) %>
+            </select>
+          </div>
+          <div class="toolbar-actions">
+            <% if (commits && commits.length) { %>
+            <a href="/<%= owner %>/<%= repoName %>/commits/<%= currentBranch %>" class="btn btn-sm btn-ghost">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M1.643 3.143L.427 1.927A.25.25 0 000 2.104V5.75c0 .138.112.25.25.25h3.646a.25.25 0 00.177-.427L2.715 4.215a6.5 6.5 0 11-1.18 4.458.75.75 0 10-1.493.154 8.001 8.001 0 101.6-5.684zM7.75 4a.75.75 0 01.75.75v2.992l2.028.812a.75.75 0 01-.557 1.392l-2.5-1A.75.75 0 017 8.25v-3.5A.75.75 0 017.75 4z"/></svg>
+              <%= commits.length > 0 ? commits[0].shortHash : '' %>
+            </a>
+            <% } %>
+            <div class="clone-dropdown">
+              <button class="btn btn-sm btn-accent" id="clone-btn">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M5.75 1a.75.75 0 00-.75.75v3c0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75v-3a.75.75 0 00-.75-.75h-4.5zm.75 3V2.5h3V4h-3zm-2.874-.467a.75.75 0 00-.752-1.298A5.001 5.001 0 002.5 8H1.75a.75.75 0 000 1.5h9.5a.75.75 0 000-1.5H10A5.001 5.001 0 006.25 3.5h-.624z"/></svg>
+                Clone
+              </button>
+              <div class="clone-popup" id="clone-popup">
+                <p class="clone-label">Clone via HTTPS</p>
+                <div class="clone-url-row">
+                  <input type="text" class="clone-url-input" value="<%= cloneUrl %>" readonly id="clone-url-input">
+                  <button class="btn btn-sm btn-ghost" onclick="copyCloneUrl()">Copy</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Latest commit bar -->
+        <% if (commits && commits.length > 0) { %>
+        <div class="latest-commit-bar">
+          <div class="commit-author-avatar"><%= commits[0].author.slice(0,1).toUpperCase() %></div>
+          <div class="commit-info">
+            <span class="commit-author"><%= commits[0].author %></span>
+            <span class="commit-msg"><%= commits[0].message %></span>
+          </div>
+          <div class="commit-meta">
+            <code class="commit-hash"><%= commits[0].shortHash %></code>
+            <span class="commit-date"><%= timeAgo(commits[0].date) %></span>
+          </div>
+        </div>
+        <% } %>
+
+        <!-- File tree -->
+        <div class="file-tree">
+          <% if (tree.length === 0) { %>
+          <div class="file-tree-empty">Empty directory</div>
+          <% } %>
+          <% tree.filter(e => e.type === 'tree').forEach(entry => { %>
+          <div class="file-tree-row">
+            <div class="file-tree-name">
+              <svg class="file-icon folder-icon" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M1.75 1A1.75 1.75 0 000 2.75v10.5C0 14.216.784 15 1.75 15h12.5A1.75 1.75 0 0016 13.25v-8.5A1.75 1.75 0 0014.25 3H7.5a.25.25 0 01-.2-.1l-.9-1.2c-.33-.44-.85-.7-1.4-.7h-3.25z"/></svg>
+              <a href="/<%= owner %>/<%= repoName %>/tree/<%= currentBranch %>/<%= entry.name %>"><%= entry.name %></a>
+            </div>
+            <div class="file-tree-commit">
+              <% const lc = lastCommits[entry.name]; if (lc) { %>
+              <span class="file-tree-commit-msg"><%= lc.message.slice(0, 52) %><%= lc.message.length > 52 ? '…' : '' %></span>
+              <span class="file-tree-commit-date"><%= timeAgo(lc.date) %></span>
+              <% } %>
+            </div>
+          </div>
+          <% }) %>
+          <% tree.filter(e => e.type === 'blob').forEach(entry => { %>
+          <div class="file-tree-row">
+            <div class="file-tree-name">
+              <svg class="file-icon" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M2 1.75C2 .784 2.784 0 3.75 0h6.586c.464 0 .909.184 1.237.513l2.914 2.914c.329.328.513.773.513 1.237v9.586A1.75 1.75 0 0113.25 16h-9.5A1.75 1.75 0 012 14.25V1.75zm1.75-.25a.25.25 0 00-.25.25v12.5c0 .138.112.25.25.25h9.5a.25.25 0 00.25-.25V6h-2.75A1.75 1.75 0 019 4.25V1.5H3.75zm6.75.5v2.25c0 .138.112.25.25.25h2.25L10.5 2z"/></svg>
+              <a href="/<%= owner %>/<%= repoName %>/blob/<%= currentBranch %>/<%= entry.name %>"><%= entry.name %></a>
+            </div>
+            <div class="file-tree-commit">
+              <% const lc2 = lastCommits[entry.name]; if (lc2) { %>
+              <span class="file-tree-commit-msg"><%= lc2.message.slice(0, 52) %><%= lc2.message.length > 52 ? '…' : '' %></span>
+              <span class="file-tree-commit-date"><%= timeAgo(lc2.date) %></span>
+              <% } %>
+            </div>
+          </div>
+          <% }) %>
+        </div>
+      </div>
+    </div>
+
+    <!-- README -->
+    <% if (readme) { %>
+    <div class="readme-box">
+      <div class="readme-header">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M0 1.75A.75.75 0 01.75 1h4.253c1.227 0 2.317.59 3 1.501A3.744 3.744 0 0111.006 1h4.245a.75.75 0 01.75.75v10.5a.75.75 0 01-.75.75h-4.507a2.25 2.25 0 00-1.591.659l-.622.621a.75.75 0 01-1.062 0l-.622-.621A2.25 2.25 0 005.258 13H.75a.75.75 0 01-.75-.75V1.75zm7.25 10.32v-8.2a2.246 2.246 0 00-2.25-1.37H1.5v9h3.757a3.75 3.75 0 011.994.57zM8.75 12.07A3.75 3.75 0 0110.745 11.5H14.5v-9h-3.5a2.25 2.25 0 00-2.25 1.37v8.2z"/></svg>
+        README
+      </div>
+      <div class="readme-body markdown-body"><%- readme %></div>
+    </div>
+    <% } %>
+
+    <% } %>
+  </div>
+</main>
+<%- include('../_foot') %>
+<script>
+const cloneBtn = document.getElementById('clone-btn');
+const clonePopup = document.getElementById('clone-popup');
+if (cloneBtn && clonePopup) {
+  cloneBtn.addEventListener('click', e => { e.stopPropagation(); clonePopup.classList.toggle('open'); });
+  document.addEventListener('click', () => clonePopup.classList.remove('open'));
+}
+function copyCloneUrl() {
+  const inp = document.getElementById('clone-url-input');
+  inp.select(); document.execCommand('copy');
+}
+</script>

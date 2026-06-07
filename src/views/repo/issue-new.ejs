@@ -1,0 +1,22 @@
+<%- include('../_head', { title: 'New Issue — ' + owner + '/' + repoName }) %>
+<main class="container repo-page">
+  <%- include('./_repo-header') %>
+  <%- include('./_repo-tabs', { active: 'issues' }) %>
+  <div class="repo-body">
+    <h2 class="section-title">Open a new issue</h2>
+    <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
+    <form method="POST" action="/<%= owner %>/<%= repoName %>/issues/new" class="form-card">
+      <div class="form-group">
+        <label for="title">Title <span class="required">*</span></label>
+        <input type="text" id="title" name="title" class="form-input" required autofocus>
+      </div>
+      <div class="form-group">
+        <label for="body">Description</label>
+        <textarea id="body" name="body" class="form-input" rows="10" placeholder="Describe the issue... (Markdown supported)"></textarea>
+      </div>
+      <button type="submit" class="btn btn-accent">Submit issue</button>
+      <a href="/<%= owner %>/<%= repoName %>/issues" class="btn btn-ghost">Cancel</a>
+    </form>
+  </div>
+</main>
+<%- include('../_foot') %>

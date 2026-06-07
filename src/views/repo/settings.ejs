@@ -1,0 +1,98 @@
+<%- include('../_head', { title: 'Settings — ' + owner + '/' + repoName }) %>
+<main class="container repo-page">
+  <%- include('./_repo-header') %>
+  <%- include('./_repo-tabs', { active: 'settings' }) %>
+  <div class="repo-body">
+    <% if (success) { %><div class="alert alert-success"><%= success %></div><% } %>
+    <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
+
+    <h2 class="section-title">General</h2>
+    <form method="POST" action="/<%= owner %>/<%= repoName %>/settings" class="form-card">
+      <div class="form-group">
+        <label for="description">Description</label>
+        <input type="text" id="description" name="description" class="form-input" value="<%= repoRow.description %>" maxlength="255">
+      </div>
+      <div class="form-group">
+        <label for="website">Website</label>
+        <input type="url" id="website" name="website" class="form-input" value="<%= repoRow.website %>" placeholder="https://...">
+      </div>
+      <div class="form-group">
+        <label class="checkbox-label">
+          <input type="checkbox" name="is_private" <%= repoRow.is_private ? 'checked' : '' %>>
+          Private repository
+        </label>
+      </div>
+      <button type="submit" class="btn btn-accent">Save changes</button>
+    </form>
+
+    <h2 class="section-title" style="margin-top:40px">Access tokens</h2>
+    <p class="text-muted">Use tokens as passwords when pushing via CLI: <code>git push http://username:TOKEN@...</code></p>
+    <div class="token-list">
+      <% if (tokens.length === 0) { %>
+      <p class="text-muted">No tokens yet.</p>
+      <% } %>
+      <% tokens.forEach(t => { %>
+      <div class="token-row">
+        <div>
+          <strong><%= t.name %></strong>
+          <code class="token-prefix"><%= t.token_prefix %></code>
+          <span class="text-muted">Created <%= t.created_at.slice(0,10) %></span>
+        </div>
+        <form method="POST" action="/api/auth/tokens/<%= t.id %>" style="display:inline">
+          <input type="hidden" name="_method" value="DELETE">
+          <button type="submit" class="btn btn-sm btn-danger">Revoke</button>
+        </form>
+      </div>
+      <% }) %>
+    </div>
+    <div class="token-create" style="margin-top:16px">
+      <form id="token-form" style="display:flex;gap:8px">
+        <input type="text" id="token-name" class="form-input" placeholder="Token name" style="max-width:300px">
+        <button type="submit" class="btn btn-sm btn-ghost">Generate token</button>
+      </form>
+      <div id="token-result" class="token-result" style="display:none"></div>
+    </div>
+
+    <h2 class="section-title danger-zone-title" style="margin-top:40px">Danger zone</h2>
+    <div class="danger-zone">
+      <div class="danger-zone-item">
+        <div>
+          <strong>Delete this repository</strong>
+          <p>Once deleted, it cannot be undone.</p>
+        </div>
+        <button class="btn btn-sm btn-danger" onclick="document.getElementById('delete-modal').classList.add('open')">Delete repository</button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div class="modal-backdrop" id="delete-modal">
+  <div class="modal">
+    <h3>Delete repository</h3>
+    <p>Type <strong><%= repoName %></strong> to confirm.</p>
+    <form method="POST" action="/<%= owner %>/<%= repoName %>/delete">
+      <input type="text" name="confirm" class="form-input" placeholder="<%= repoName %>" required>
+      <div style="margin-top:12px;display:flex;gap:8px">
+        <button type="submit" class="btn btn-danger">Delete forever</button>
+        <button type="button" class="btn btn-ghost" onclick="document.getElementById('delete-modal').classList.remove('open')">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<%- include('../_foot') %>
+<script>
+document.getElementById('token-form')?.addEventListener('submit', async e => {
+  e.preventDefault();
+  const name = document.getElementById('token-name').value.trim();
+  if (!name) return;
+  const res = await fetch('/api/auth/tokens', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({name}) });
+  const data = await res.json();
+  if (data.token) {
+    const el = document.getElementById('token-result');
+    el.innerHTML = '<strong>Copy this token now — it will not be shown again:</strong><br><code class="token-display">' + data.token + '</code>';
+    el.style.display = 'block';
+    document.getElementById('token-name').value = '';
+  }
+});
+</script>

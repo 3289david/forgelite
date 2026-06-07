@@ -1,0 +1,70 @@
+<%- include('_head', { title: profileUser.username }) %>
+<main class="container profile-page">
+  <div class="profile-layout">
+    <aside class="profile-sidebar">
+      <div class="profile-avatar"><%= profileUser.username.slice(0,1).toUpperCase() %></div>
+      <h1 class="profile-name"><%= profileUser.username %></h1>
+      <% if (profileUser.bio) { %><p class="profile-bio"><%= profileUser.bio %></p><% } %>
+      <% if (profileUser.location) { %>
+        <div class="profile-meta-item">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C5.24 0 3 2.24 3 5c0 3.75 5 11 5 11s5-7.25 5-11c0-2.76-2.24-5-5-5zm0 7.5a2.5 2.5 0 110-5 2.5 2.5 0 010 5z"/></svg>
+          <%= profileUser.location %>
+        </div>
+      <% } %>
+      <% if (profileUser.website) { %>
+        <div class="profile-meta-item">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M7.775 3.275a.75.75 0 001.06 1.06l1.25-1.25a2 2 0 112.83 2.83l-2.5 2.5a2 2 0 01-2.83 0 .75.75 0 00-1.06 1.06 3.5 3.5 0 004.95 0l2.5-2.5a3.5 3.5 0 00-4.95-4.95l-1.25 1.25zm-4.69 9.64a2 2 0 010-2.83l2.5-2.5a2 2 0 012.83 0 .75.75 0 001.06-1.06 3.5 3.5 0 00-4.95 0l-2.5 2.5a3.5 3.5 0 004.95 4.95l1.25-1.25a.75.75 0 00-1.06-1.06l-1.25 1.25a2 2 0 01-2.83 0z"/></svg>
+          <a href="<%= profileUser.website %>" target="_blank" rel="noopener"><%= profileUser.website.replace(/^https?:\/\//, '') %></a>
+        </div>
+      <% } %>
+      <div class="profile-stats">
+        <span class="profile-stat"><strong><%= followers %></strong> followers</span>
+        <span class="profile-stat-sep">·</span>
+        <span class="profile-stat"><strong><%= following %></strong> following</span>
+      </div>
+      <% if (user && !isSelf) { %>
+      <form method="POST" action="/<%= profileUser.username %>/follow" style="margin-top:12px">
+        <% if (!isFollowing) { %>
+        <button type="submit" class="btn btn-sm btn-ghost btn-full">Follow</button>
+        <% } else { %>
+        <input type="hidden" name="_method" value="DELETE">
+        <button type="submit" formaction="/<%= profileUser.username %>/follow?_method=DELETE" class="btn btn-sm btn-ghost btn-full">Unfollow</button>
+        <% } %>
+      </form>
+      <% } %>
+      <% if (isSelf) { %><a href="/settings" class="btn btn-sm btn-ghost btn-full" style="margin-top:12px">Edit profile</a><% } %>
+    </aside>
+    <div class="profile-main">
+      <h2 class="section-title" style="margin-top:0">Repositories <span class="badge"><%= repos.length %></span></h2>
+      <% if (repos.length === 0) { %>
+      <div class="empty-state">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z"/></svg>
+        <p>No repositories yet.</p>
+        <% if (isSelf) { %><a href="/new" class="btn btn-accent btn-sm">Create one</a><% } %>
+      </div>
+      <% } else { %>
+      <div class="repo-list">
+        <% repos.forEach(repo => { %>
+        <div class="repo-item">
+          <div class="repo-item-header">
+            <a href="/<%= repo.owner_name %>/<%= repo.name %>" class="repo-item-name"><%= repo.name %></a>
+            <span class="repo-visibility-badge <%= repo.is_private ? 'private' : 'public' %>"><%= repo.is_private ? 'Private' : 'Public' %></span>
+          </div>
+          <% if (repo.description) { %><p class="repo-item-desc"><%= repo.description %></p><% } %>
+          <div class="repo-item-meta">
+            <% if (repo.star_count > 0) { %>
+            <span class="repo-meta-stat">
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor"><path d="M8 .25a.75.75 0 01.673.418l1.882 3.815 4.21.612a.75.75 0 01.416 1.279l-3.046 2.97.719 4.192a.75.75 0 01-1.088.791L8 12.347l-3.766 1.98a.75.75 0 01-1.088-.79l.72-4.194L.818 6.374a.75.75 0 01.416-1.28l4.21-.611L7.327.668A.75.75 0 018 .25z"/></svg>
+              <%= repo.star_count %>
+            </span>
+            <% } %>
+            <span>Updated <%= timeAgo(repo.updated_at) %></span>
+          </div>
+        </div>
+        <% }) %>
+      </div>
+      <% } %>
+    </div>
+  </div>
+</main>
+<%- include('_foot') %>

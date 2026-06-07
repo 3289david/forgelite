@@ -1,0 +1,56 @@
+<%- include('../_head', { title: filePath + ' — ' + owner + '/' + repoName }) %>
+<main class="container repo-page">
+  <%- include('./_repo-header') %>
+  <%- include('./_repo-tabs', { active: 'code' }) %>
+  <div class="repo-body">
+    <div class="file-path-bar">
+      <a href="/<%= owner %>/<%= repoName %>"><%= repoName %></a>
+      <% breadcrumbs.forEach((bc, i) => { %>
+        <span class="path-sep">/</span>
+        <% if (i < breadcrumbs.length - 1) { %>
+        <a href="/<%= owner %>/<%= repoName %>/tree/<%= branch %>/<%= bc.path %>"><%= bc.name %></a>
+        <% } else { %>
+        <strong><%= bc.name %></strong>
+        <% } %>
+      <% }) %>
+    </div>
+
+    <% if (fileCommit) { %>
+    <div class="file-meta-bar">
+      <div class="commit-author-avatar"><%= fileCommit.author.slice(0,1).toUpperCase() %></div>
+      <span class="commit-author"><%= fileCommit.author %></span>
+      <span class="commit-msg"><%= fileCommit.message %></span>
+      <code class="commit-hash"><%= fileCommit.shortHash %></code>
+      <span class="commit-date"><%= timeAgo(fileCommit.date) %></span>
+    </div>
+    <% } %>
+
+    <div class="file-viewer">
+      <div class="file-viewer-header">
+        <span class="file-line-count"><%= lineCount %> lines</span>
+      </div>
+      <% if (isBinary) { %>
+        <% if (content.startsWith('data:image/')) { %>
+        <div class="file-binary-img"><img src="<%= content %>" alt="<%= filePath %>"></div>
+        <% } else { %>
+        <div class="file-binary">Binary file · cannot display</div>
+        <% } %>
+      <% } else { %>
+      <div class="file-code">
+        <table class="code-table">
+          <tbody>
+          <% const lines = content.split('\n'); const hlines = highlighted.split('\n'); %>
+          <% lines.forEach((_, i) => { %>
+          <tr>
+            <td class="line-num"><%= i + 1 %></td>
+            <td class="line-code"><%- hlines[i] || '' %></td>
+          </tr>
+          <% }) %>
+          </tbody>
+        </table>
+      </div>
+      <% } %>
+    </div>
+  </div>
+</main>
+<%- include('../_foot') %>

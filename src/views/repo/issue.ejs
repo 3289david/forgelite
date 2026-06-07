@@ -1,0 +1,74 @@
+<%- include('../_head', { title: '#' + issue.number + ' ' + issue.title }) %>
+<main class="container repo-page">
+  <%- include('./_repo-header') %>
+  <%- include('./_repo-tabs', { active: 'issues' }) %>
+  <div class="repo-body">
+    <div class="issue-page-header">
+      <h1 class="issue-page-title">
+        <%= issue.title %>
+        <span class="issue-number">#<%= issue.number %></span>
+      </h1>
+      <div class="issue-page-meta">
+        <span class="status-badge <%= issue.status === 'open' ? 'status-open' : 'status-closed' %>">
+          <% if (issue.status === 'open') { %>
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M8 9.5a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/><path fill-rule="evenodd" d="M8 0a8 8 0 100 16A8 8 0 008 0zM1.5 8a6.5 6.5 0 1113 0 6.5 6.5 0 01-13 0z"/></svg>
+          Open
+          <% } else { %>
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M11.28 6.78a.75.75 0 00-1.06-1.06L7.25 8.69 5.78 7.22a.75.75 0 00-1.06 1.06l2 2a.75.75 0 001.06 0l3.5-3.5z"/><path fill-rule="evenodd" d="M16 8A8 8 0 110 8a8 8 0 0116 0zm-1.5 0a6.5 6.5 0 11-13 0 6.5 6.5 0 0113 0z"/></svg>
+          Closed
+          <% } %>
+        </span>
+        <span>Opened by <a href="/<%= issue.author_name %>"><%= issue.author_name %></a> · <%= timeAgo(issue.created_at) %></span>
+      </div>
+    </div>
+
+    <div class="discussion">
+      <!-- Original post -->
+      <div class="comment-block is-op">
+        <div class="comment-avatar"><%= issue.author_name.slice(0,1).toUpperCase() %></div>
+        <div class="comment-body">
+          <div class="comment-header">
+            <strong><%= issue.author_name %></strong>
+            <span class="comment-date"><%= timeAgo(issue.created_at) %></span>
+          </div>
+          <div class="comment-content markdown-body"><%- renderMarkdown(issue.body || '') %></div>
+        </div>
+      </div>
+
+      <% comments.forEach(c => { %>
+      <div class="comment-block">
+        <div class="comment-avatar"><%= c.author_name.slice(0,1).toUpperCase() %></div>
+        <div class="comment-body">
+          <div class="comment-header">
+            <strong><%= c.author_name %></strong>
+            <span class="comment-date"><%= timeAgo(c.created_at) %></span>
+          </div>
+          <div class="comment-content markdown-body"><%- renderMarkdown(c.body) %></div>
+        </div>
+      </div>
+      <% }) %>
+
+      <% if (user) { %>
+      <div class="new-comment-form">
+        <div class="comment-avatar"><%= user.username.slice(0,1).toUpperCase() %></div>
+        <div class="new-comment-body">
+          <form method="POST" action="/<%= owner %>/<%= repoName %>/issues/<%= issue.number %>/comment">
+            <textarea name="body" class="form-input" rows="5" placeholder="Leave a comment... (Markdown supported)"></textarea>
+            <div class="comment-form-actions">
+              <% if (isOwner || isAuthor) { %>
+              <form method="POST" action="/<%= owner %>/<%= repoName %>/issues/<%= issue.number %>/toggle" class="inline-form">
+                <button type="submit" class="btn btn-ghost btn-sm">
+                  <%= issue.status === 'open' ? 'Close issue' : 'Reopen issue' %>
+                </button>
+              </form>
+              <% } %>
+              <button type="submit" class="btn btn-accent btn-sm">Comment</button>
+            </div>
+          </form>
+        </div>
+      </div>
+      <% } %>
+    </div>
+  </div>
+</main>
+<%- include('../_foot') %>

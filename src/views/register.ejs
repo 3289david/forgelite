@@ -1,0 +1,33 @@
+<%- include('_head', { title: 'Create account' }) %>
+<main class="auth-page">
+  <div class="auth-box">
+    <div class="auth-logo">
+      <img src="/logo.svg" alt="ForgeLite" width="48" height="48">
+    </div>
+    <h1 class="auth-title">Create your account</h1>
+    <% if (error) { %>
+    <div class="alert alert-error"><%= error %></div>
+    <% } %>
+    <form method="POST" action="/register" class="auth-form">
+      <div class="form-group">
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" class="form-input" autocomplete="username" pattern="[a-zA-Z0-9_\-]{3,32}" title="3-32 chars, letters/numbers/- only" autofocus required>
+        <span class="form-hint">Letters, numbers, hyphens, underscores. 3-32 characters.</span>
+      </div>
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" class="form-input" autocomplete="email" required>
+      </div>
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" class="form-input" autocomplete="new-password" minlength="8" required>
+        <span class="form-hint">At least 8 characters.</span>
+      </div>
+      <button type="submit" class="btn btn-accent btn-full">Create account</button>
+    </form>
+    <div class="auth-footer">
+      Already have an account? <a href="/login">Sign in</a>
+    </div>
+  </div>
+</main>
+<%- include('_foot') %>
