@@ -1,5 +1,6 @@
 <%- include('_head', { title: 'Settings' }) %>
-<main class="container" style="max-width:600px;padding-top:40px">
+<main class="form-page">
+<div class="form-page-inner">
   <h1>Profile settings</h1>
   <% if (success) { %><div class="alert alert-success"><%= success %></div><% } %>
   <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
@@ -26,5 +27,6 @@
     </div>
     <button type="submit" class="btn btn-accent">Save changes</button>
   </form>
+</div>
 </main>
 <%- include('_foot') %>

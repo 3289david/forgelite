@@ -1,5 +1,6 @@
 <%- include('_head', { title: 'New repository' }) %>
-<main class="container" style="max-width:600px;padding-top:40px">
+<main class="form-page">
+<div class="form-page-inner">
   <h1 style="margin-bottom:24px">Create a new repository</h1>
   <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
   <form method="POST" action="/new" class="form-card">
@@ -24,5 +25,6 @@
     </div>
     <button type="submit" class="btn btn-accent">Create repository</button>
   </form>
+</div>
 </main>
 <%- include('_foot') %>

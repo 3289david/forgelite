@@ -58,7 +58,7 @@ main { flex: 1; }
 .nav-user-menu { position: relative; }
 .nav-avatar { display: flex; align-items: center; text-decoration: none; }
 .nav-dropdown { position: absolute; right: 0; top: calc(100% + 8px); background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow-md); min-width: 180px; display: none; z-index: 200; overflow: hidden; }
-.nav-user-menu:hover .nav-dropdown { display: block; }
+.nav-dropdown.open { display: block; }
 .nav-dropdown a, .nav-dropdown .dropdown-btn { display: block; padding: 8px 16px; color: var(--text); font-size: 13px; width: 100%; text-align: left; background: none; border: none; cursor: pointer; font-family: var(--font); }
 .nav-dropdown a:hover, .nav-dropdown .dropdown-btn:hover { background: var(--bg-secondary); text-decoration: none; }
 .nav-dropdown hr { border: none; border-top: 1px solid var(--border); margin: 4px 0; }
@@ -158,8 +158,13 @@ select.form-input { cursor: pointer; }
 .repo-card-desc { font-size: 12px; color: var(--text-muted); margin-bottom: 8px; }
 .repo-card-meta { font-size: 12px; color: var(--text-light); }
 
+/* ── Full-width page base — used by every non-landing page ───────────────── */
+.page { width: 100%; padding: 32px 32px; box-sizing: border-box; }
+.form-page { width: 100%; padding: 40px 32px; box-sizing: border-box; }
+.form-page-inner { max-width: 680px; }
+
 /* ── Profile ─────────────────────────────────────────────────────────────── */
-.profile-page { padding: 40px 0; }
+.profile-page { width: 100%; padding: 40px 32px; box-sizing: border-box; }
 .profile-layout { display: grid; grid-template-columns: 280px 1fr; gap: 32px; align-items: start; }
 .profile-sidebar { position: sticky; top: 72px; }
 .profile-avatar { width: 80px; height: 80px; border-radius: 50%; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: 700; margin-bottom: 12px; }
@@ -171,10 +176,15 @@ select.form-input { cursor: pointer; }
 .profile-stat-sep { color: var(--border); }
 
 .repo-list { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
-.repo-item { padding: 16px; border-bottom: 1px solid var(--border-muted); }
+.repo-item-link { display: block; text-decoration: none; color: inherit; }
+.repo-item-link:hover { text-decoration: none; }
+.repo-item-link:hover .repo-item { background: var(--bg-secondary); }
+.repo-item { padding: 16px; border-bottom: 1px solid var(--border-muted); transition: background .12s; }
+.repo-item-link:last-child .repo-item,
 .repo-item:last-child { border-bottom: none; }
 .repo-item-header { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
 .repo-item-name { font-weight: 600; color: var(--blue); font-size: 15px; }
+.repo-owner-part { color: var(--text-muted); font-weight: 400; }
 .repo-item-desc { font-size: 12px; color: var(--text-muted); margin-bottom: 6px; }
 .repo-item-meta { display: flex; align-items: center; gap: 12px; font-size: 12px; color: var(--text-muted); }
 .repo-meta-stat { display: flex; align-items: center; gap: 4px; }
@@ -380,7 +390,7 @@ select.form-input { cursor: pointer; }
 .modal p { font-size: 13px; color: var(--text-muted); margin-bottom: 16px; }
 
 /* ── Error page ──────────────────────────────────────────────────────────── */
-.error-page { display: flex; justify-content: center; align-items: center; min-height: 60vh; }
+.error-page { display: flex; justify-content: center; align-items: center; min-height: 60vh; width: 100%; padding: 32px; box-sizing: border-box; }
 .error-inner { text-align: center; }
 .error-code { font-size: 80px; font-weight: 800; color: var(--bg-tertiary); line-height: 1; }
 .error-msg { font-size: 18px; color: var(--text-muted); margin: 8px 0 24px; }
@@ -409,14 +419,14 @@ select.form-input { cursor: pointer; }
 .hljs-strong { font-weight: bold; }
 
 /* ── Explore page ────────────────────────────────────────────────────────── */
-.explore-page { padding: 40px 0; }
+.explore-page { width: 100%; padding: 40px 32px; box-sizing: border-box; }
 .explore-header { margin-bottom: 32px; }
 .explore-header h1 { font-size: 26px; font-weight: 700; margin-bottom: 8px; }
 .explore-header p { color: var(--text-muted); font-size: 15px; }
 
 /* ── Docs page ───────────────────────────────────────────────────────────── */
-.docs-page { padding: 48px 0; }
-.docs-layout { display: grid; grid-template-columns: 220px 1fr; gap: 48px; align-items: start; max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+.docs-page { width: 100%; padding: 0; box-sizing: border-box; }
+.docs-layout { display: grid; grid-template-columns: 220px 1fr; gap: 48px; align-items: start; width: 100%; padding: 40px 32px; box-sizing: border-box; }
 .docs-sidebar { position: sticky; top: 72px; }
 .docs-sidebar-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 8px; padding: 0 8px; }
 .docs-nav { list-style: none; }

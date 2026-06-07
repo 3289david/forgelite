@@ -19,7 +19,7 @@
         <li><a href="#repos">Repositories</a></li>
         <li><a href="#issues">Issues</a></li>
         <li><a href="#prs">Pull Requests</a></li>
-        <li><a href="#pages">Web Hosting</a></li>
+        <li><a href="#pages">Web Hosting (Pages)</a></li>
         <li class="docs-nav-group">
           <div class="docs-sidebar-title" style="margin-top:0">API Reference</div>
         </li>
@@ -276,6 +276,65 @@ git push http://alice:token@localhost:3000/alice/myrepo.git gh-pages</code></pre
 
         <h3>Directory index</h3>
         <p>Requests to a path without an extension (e.g., <code>/pages/about</code>) automatically try <code>/about/index.html</code> and <code>/about.html</code>.</p>
+
+        <h3>Full step-by-step example</h3>
+        <p>Here is a complete example of deploying a static site to ForgeLite Pages from scratch:</p>
+        <pre><code># 1. Clone your repository (or use an existing one)
+git clone http://alice:mypassword@localhost:3000/alice/mysite.git
+cd mysite
+
+# 2. Create the gh-pages branch
+git checkout --orphan gh-pages   # empty branch, no shared history needed
+git rm -rf .                     # clear any files inherited from main
+
+# 3. Build your site (or write HTML directly)
+mkdir -p assets
+cat &gt; index.html &lt;&lt;'HTML'
+&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="UTF-8"&gt;
+  &lt;title&gt;My Site&lt;/title&gt;
+  &lt;link rel="stylesheet" href="assets/style.css"&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;Hello from ForgeLite Pages!&lt;/h1&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+HTML
+
+echo "body { font-family: sans-serif; max-width: 800px; margin: 40px auto; }" &gt; assets/style.css
+
+# 4. Commit and push
+git add .
+git commit -m "Deploy: initial site"
+git push http://alice:mypassword@localhost:3000/alice/mysite.git gh-pages
+
+# 5. Your site is now live at:
+#    http://localhost:3000/alice/mysite/pages/</code></pre>
+
+        <h3>Updating your site</h3>
+        <pre><code># Edit your files, then:
+git add .
+git commit -m "Deploy: update homepage"
+git push origin gh-pages
+# Changes are live instantly — no build step, no cache to clear.</code></pre>
+
+        <h3>Using a framework (Vite, Next.js, etc.)</h3>
+        <pre><code># Build your project
+npm run build          # output goes to dist/ or out/
+
+# Copy build output to a temp directory
+cd dist
+
+# Init git in the build output
+git init
+git checkout -b gh-pages
+git add -A
+git commit -m "Deploy"
+git push -f http://alice:token@localhost:3000/alice/myapp.git gh-pages</code></pre>
+
+        <div class="docs-callout"><strong>Tip:</strong> The <code>gh-pages</code> branch is completely independent — you can keep your source code on <code>main</code> and only push built files to <code>gh-pages</code>. They don't need to share history.</div>
       </section>
 
       <!-- ── API: Auth ── -->
