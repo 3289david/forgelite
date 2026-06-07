@@ -110,15 +110,12 @@ router.all(GIT_ROUTE, async (req: AuthedRequest, res: Response): Promise<void> =
     return;
   }
 
-  // Write (push) requires auth + ownership (or collaborator in future)
+  // Write (push) requires auth + ownership
+  // Always return 401 (not 403) so git re-prompts for correct credentials
   if (isReceivePack || (isUploadPack && req.query.service === 'git-receive-pack')) {
-    if (!authedUser) {
-      res.setHeader('WWW-Authenticate', 'Basic realm="ForgeLite"');
-      res.status(401).end('Authentication required');
-      return;
-    }
-    if (authedUser.id !== repoRow.owner_id) {
-      res.status(403).end('Push access denied');
+    if (!authedUser || authedUser.id !== repoRow.owner_id) {
+      res.setHeader('WWW-Authenticate', `Basic realm="ForgeLite - ${owner}/${repoName}"`);
+      res.status(401).end('Push access denied: authenticate as the repository owner');
       return;
     }
   }

@@ -37,6 +37,50 @@ export async function deleteRepo(repoPath: string): Promise<void> {
   await fs.rm(repoPath, { recursive: true, force: true });
 }
 
+export interface WebCommitOptions {
+  branch: string;
+  filePath: string;
+  content: string | null;  // null = delete the file
+  message: string;
+  authorName: string;
+  authorEmail: string;
+}
+
+export async function webCommit(bareRepoPath: string, opts: WebCommitOptions): Promise<void> {
+  const tmpDir = bareRepoPath + `.edit-${Date.now()}`;
+  const repoIsEmpty = await isEmpty(bareRepoPath);
+
+  try {
+    if (repoIsEmpty) {
+      await exec('git', ['clone', bareRepoPath, tmpDir]);
+    } else {
+      await exec('git', ['clone', '--branch', opts.branch, bareRepoPath, tmpDir]);
+    }
+
+    const fileFull = path.join(tmpDir, opts.filePath);
+
+    if (opts.content !== null) {
+      await fs.mkdir(path.dirname(fileFull), { recursive: true });
+      await fs.writeFile(fileFull, opts.content, 'utf8');
+      await exec('git', ['-C', tmpDir, 'add', opts.filePath]);
+    } else {
+      await exec('git', ['-C', tmpDir, 'rm', opts.filePath]);
+    }
+
+    await exec('git', ['-C', tmpDir, 'config', 'user.name', opts.authorName]);
+    await exec('git', ['-C', tmpDir, 'config', 'user.email', opts.authorEmail]);
+    await exec('git', ['-C', tmpDir, 'commit', '-m', opts.message]);
+
+    if (repoIsEmpty) {
+      await exec('git', ['-C', tmpDir, 'push', 'origin', `HEAD:${opts.branch}`]);
+    } else {
+      await exec('git', ['-C', tmpDir, 'push', 'origin', opts.branch]);
+    }
+  } finally {
+    await fs.rm(tmpDir, { recursive: true, force: true });
+  }
+}
+
 export async function isEmpty(repoPath: string): Promise<boolean> {
   try {
     await git(repoPath, 'rev-parse', 'HEAD');

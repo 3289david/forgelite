@@ -6,7 +6,7 @@ import { config } from '../config';
 import {
   isEmpty, getDefaultBranch, getBranches, getTree, getFileContent,
   getCommits, getCommit, getDiff, parseDiff, getLastCommitForPath,
-  refExists, getMimeType,
+  refExists, getMimeType, webCommit,
 } from '../lib/git';
 import { renderMarkdown } from '../lib/markdown';
 import hljs from 'highlight.js';
@@ -541,6 +541,115 @@ router.post('/:owner/:repo/delete', requireAuth, async (req: AuthedRequest, res:
     const { deleteRepo } = await import('../lib/git');
     await deleteRepo(rp(owner, repoName));
     res.redirect(`/${owner}`);
+  });
+});
+
+// ── Web file editor ───────────────────────────────────────────────────────────
+// New file
+router.get('/:owner/:repo/new-file/:branch', requireAuth, async (req: AuthedRequest, res: Response): Promise<void> => {
+  await withRepo(req, res, async (repoRow, owner, repoName) => {
+    if (req.user!.id !== repoRow.owner_id) { res.status(403).render('error', { code: 403, message: 'Forbidden' }); return; }
+    const { branch } = req.params;
+    const dirPath = (req.query.dir as string) || '';
+    res.render('repo/editor', { repoRow, owner, repoName, branch, mode: 'new', filePath: '', fileContent: '', dirPath, error: null });
+  });
+});
+
+router.post('/:owner/:repo/new-file/:branch', requireAuth, async (req: AuthedRequest, res: Response): Promise<void> => {
+  await withRepo(req, res, async (repoRow, owner, repoName) => {
+    if (req.user!.id !== repoRow.owner_id) { res.status(403).end(); return; }
+    const { branch } = req.params;
+    const { file_name, dir_path = '', content = '', commit_message = 'Create file' } = req.body as Record<string, string>;
+
+    if (!file_name?.trim()) {
+      res.render('repo/editor', { repoRow, owner, repoName, branch, mode: 'new', filePath: '', fileContent: content, dirPath: dir_path, error: 'File name is required' });
+      return;
+    }
+
+    const filePath = dir_path ? `${dir_path}/${file_name}` : file_name;
+    const repoGitPath = rp(owner, repoName);
+
+    try {
+      await webCommit(repoGitPath, {
+        branch,
+        filePath,
+        content,
+        message: commit_message,
+        authorName: req.user!.username,
+        authorEmail: req.user!.email,
+      });
+      res.redirect(`/${owner}/${repoName}/blob/${branch}/${filePath}`);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Commit failed';
+      res.render('repo/editor', { repoRow, owner, repoName, branch, mode: 'new', filePath, fileContent: content, dirPath: dir_path, error: msg });
+    }
+  });
+});
+
+// Edit existing file
+router.get('/:owner/:repo/edit/:branch/*', requireAuth, async (req: AuthedRequest, res: Response): Promise<void> => {
+  await withRepo(req, res, async (repoRow, owner, repoName) => {
+    if (req.user!.id !== repoRow.owner_id) { res.status(403).render('error', { code: 403, message: 'Forbidden' }); return; }
+    const { branch } = req.params;
+    const filePath = (req.params as Record<string, string>)[0] ?? '';
+    const repoGitPath = rp(owner, repoName);
+    try {
+      const buf = await getFileContent(repoGitPath, branch, filePath);
+      const fileContent = buf.toString('utf8');
+      res.render('repo/editor', { repoRow, owner, repoName, branch, mode: 'edit', filePath, fileContent, dirPath: '', error: null });
+    } catch { res.status(404).render('error', { code: 404, message: 'File not found' }); }
+  });
+});
+
+router.post('/:owner/:repo/edit/:branch/*', requireAuth, async (req: AuthedRequest, res: Response): Promise<void> => {
+  await withRepo(req, res, async (repoRow, owner, repoName) => {
+    if (req.user!.id !== repoRow.owner_id) { res.status(403).end(); return; }
+    const { branch } = req.params;
+    const originalPath = (req.params as Record<string, string>)[0] ?? '';
+    const { content = '', commit_message = 'Update file', file_path } = req.body as Record<string, string>;
+    const filePath = file_path || originalPath;
+    const repoGitPath = rp(owner, repoName);
+
+    try {
+      await webCommit(repoGitPath, {
+        branch,
+        filePath,
+        content,
+        message: commit_message,
+        authorName: req.user!.username,
+        authorEmail: req.user!.email,
+      });
+      res.redirect(`/${owner}/${repoName}/blob/${branch}/${filePath}`);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Commit failed';
+      res.render('repo/editor', { repoRow, owner, repoName, branch, mode: 'edit', filePath: originalPath, fileContent: content, dirPath: '', error: msg });
+    }
+  });
+});
+
+// Delete file
+router.post('/:owner/:repo/delete-file/:branch/*', requireAuth, async (req: AuthedRequest, res: Response): Promise<void> => {
+  await withRepo(req, res, async (repoRow, owner, repoName) => {
+    if (req.user!.id !== repoRow.owner_id) { res.status(403).end(); return; }
+    const { branch } = req.params;
+    const filePath = (req.params as Record<string, string>)[0] ?? '';
+    const { commit_message = `Delete ${filePath}` } = req.body as Record<string, string>;
+    const repoGitPath = rp(owner, repoName);
+
+    try {
+      await webCommit(repoGitPath, {
+        branch,
+        filePath,
+        content: null,
+        message: commit_message,
+        authorName: req.user!.username,
+        authorEmail: req.user!.email,
+      });
+      const parentDir = filePath.includes('/') ? filePath.split('/').slice(0, -1).join('/') : '';
+      res.redirect(`/${owner}/${repoName}${parentDir ? '/tree/' + branch + '/' + parentDir : ''}`);
+    } catch (err) {
+      res.redirect(`/${owner}/${repoName}/blob/${branch}/${filePath}?error=delete_failed`);
+    }
   });
 });
 

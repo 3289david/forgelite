@@ -1,0 +1,105 @@
+<%- include('../_head', { title: (mode === 'edit' ? 'Edit ' + filePath : 'New file') + ' — ' + owner + '/' + repoName }) %>
+<link rel="stylesheet" href="/css/editor.css">
+<main class="repo-page">
+  <%- include('./_repo-header') %>
+  <%- include('./_repo-tabs', { active: 'code' }) %>
+
+  <div class="repo-body">
+    <% if (error) { %><div class="alert alert-error" style="margin-bottom:16px"><%= error %></div><% } %>
+
+    <form method="POST" action="/<%= owner %>/<%= repoName %>/<%= mode === 'edit' ? 'edit' : 'new-file' %>/<%= branch %>/<%= mode === 'edit' ? filePath : '' %>" class="editor-form">
+
+      <!-- File path bar -->
+      <div class="editor-path-bar">
+        <a href="/<%= owner %>/<%= repoName %>"><%= repoName %></a>
+        <span class="path-sep">/</span>
+        <% if (mode === 'edit') { %>
+          <% const parts = filePath.split('/'); parts.forEach((p, i) => { %>
+            <% if (i < parts.length - 1) { %><a href="/<%= owner %>/<%= repoName %>/tree/<%= branch %>/<%= parts.slice(0,i+1).join('/') %>"><%= p %></a><span class="path-sep">/</span><% } else { %><input type="text" name="file_path" class="editor-filename-input" value="<%= p %>" required placeholder="filename.ext"><% } %>
+          <% }) %>
+        <% } else { %>
+          <% if (dirPath) { %><span class="editor-path-prefix"><%= dirPath %>/</span><input type="hidden" name="dir_path" value="<%= dirPath %>"><% } %>
+          <input type="text" name="file_name" class="editor-filename-input" placeholder="filename.ext" required autofocus>
+          <span class="editor-path-hint">Type a / to create subdirectories</span>
+        <% } %>
+      </div>
+
+      <!-- Code editor area -->
+      <div class="editor-area">
+        <div class="editor-line-numbers" id="line-numbers">1</div>
+        <textarea
+          name="content"
+          id="editor-content"
+          class="editor-textarea"
+          spellcheck="false"
+          autocomplete="off"
+          autocorrect="off"
+          autocapitalize="off"
+          placeholder="File content here..."
+        ><%= typeof fileContent !== 'undefined' ? fileContent : '' %></textarea>
+      </div>
+
+      <!-- Commit section -->
+      <div class="editor-commit-bar">
+        <div class="editor-commit-fields">
+          <div class="form-group" style="margin:0;flex:1">
+            <label for="commit_msg" style="font-size:12px;font-weight:600">Commit message</label>
+            <input type="text" id="commit_msg" name="commit_message" class="form-input"
+              value="<%= mode === 'edit' ? 'Update ' + filePath : 'Create ' + (typeof filePath !== 'undefined' ? filePath : 'file') %>"
+              required style="margin-top:4px">
+          </div>
+        </div>
+        <div class="editor-commit-actions">
+          <button type="submit" class="btn btn-accent">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M1.643 3.143L.427 1.927A.25.25 0 000 2.104V5.75c0 .138.112.25.25.25h3.646a.25.25 0 00.177-.427L2.715 4.215a6.5 6.5 0 11-1.18 4.458.75.75 0 10-1.493.154 8.001 8.001 0 101.6-5.684zM7.75 4a.75.75 0 01.75.75v2.992l2.028.812a.75.75 0 01-.557 1.392l-2.5-1A.75.75 0 017 8.25v-3.5A.75.75 0 017.75 4z"/></svg>
+            Commit <%= mode === 'edit' ? 'changes' : 'new file' %>
+          </button>
+          <a href="/<%= owner %>/<%= repoName %>/<%= mode === 'edit' ? 'blob/' + branch + '/' + filePath : '' %>" class="btn btn-ghost">Cancel</a>
+        </div>
+      </div>
+    </form>
+  </div>
+</main>
+<%- include('../_foot') %>
+<script>
+// Line numbers
+const textarea = document.getElementById('editor-content');
+const lineNums = document.getElementById('line-numbers');
+
+function updateLineNumbers() {
+  const lines = (textarea.value + '\n').split('\n').length;
+  lineNums.innerHTML = Array.from({length: lines - 1}, (_, i) => i + 1).join('\n');
+}
+
+function syncScroll() {
+  lineNums.scrollTop = textarea.scrollTop;
+}
+
+textarea.addEventListener('input', updateLineNumbers);
+textarea.addEventListener('scroll', syncScroll);
+updateLineNumbers();
+
+// Tab key inserts spaces instead of changing focus
+textarea.addEventListener('keydown', (e) => {
+  if (e.key === 'Tab') {
+    e.preventDefault();
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    textarea.value = textarea.value.slice(0, start) + '  ' + textarea.value.slice(end);
+    textarea.selectionStart = textarea.selectionEnd = start + 2;
+    updateLineNumbers();
+  }
+});
+
+// Auto-complete file path with /
+const fileNameInput = document.querySelector('.editor-filename-input');
+if (fileNameInput) {
+  fileNameInput.addEventListener('input', () => {
+    const val = fileNameInput.value;
+    if (val.includes('/')) {
+      // Update placeholder to show it's a directory path
+      fileNameInput.placeholder = 'path/to/file.ext';
+    }
+  });
+}
+</script>
