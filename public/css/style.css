@@ -353,6 +353,14 @@ select.form-input { cursor: pointer; }
 .empty-diff { padding: 16px; text-align: center; color: var(--text-muted); font-size: 13px; }
 
 /* ── README ──────────────────────────────────────────────────────────────── */
+.pages-banner { display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; margin-top: 16px; background: var(--success-bg); border: 1px solid #9be2b0; border-radius: var(--radius); font-size: 13px; flex-wrap: wrap; gap: 8px; }
+.pages-banner-icon { display: flex; align-items: center; gap: 8px; color: var(--success); }
+.pages-banner-links { display: flex; gap: 8px; }
+.pages-link { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 12px; color: var(--text-muted); background: var(--bg); text-decoration: none; transition: all .12s; }
+.pages-link:hover { border-color: var(--accent); color: var(--accent); text-decoration: none; }
+.pages-link-https { border-color: var(--success); color: var(--success); background: var(--bg); }
+.pages-link-https:hover { background: var(--success-bg); color: var(--success); }
+.pages-ssl-badge { background: var(--success); color: #fff; font-size: 9px; font-weight: 700; padding: 1px 4px; border-radius: 3px; letter-spacing: .04em; }
 .readme-box { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-top: 24px; }
 .readme-header { display: flex; align-items: center; gap: 8px; padding: 10px 16px; background: var(--bg-secondary); border-bottom: 1px solid var(--border); font-size: 13px; font-weight: 600; color: var(--text-muted); }
 .readme-body { padding: 24px; }

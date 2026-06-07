@@ -278,6 +278,11 @@ router.get('/:owner/:repo', async (req: AuthedRequest, res: Response): Promise<v
     const openPrs = (getDb().prepare("SELECT COUNT(*) as c FROM pull_requests WHERE repo_id = ? AND status = 'open'").get(repoRow.id) as { c: number }).c;
     const starred = req.user ? !!getDb().prepare('SELECT 1 FROM stars WHERE user_id = ? AND repo_id = ?').get(req.user.id, repoRow.id) : false;
     const cloneUrl = `${config.baseUrl}/${owner}/${repoName}.git`;
+    const hasPagesDeployment = branches.includes('gh-pages');
+    const pagesHttpUrl = `${config.baseUrl}/${owner}/${repoName}/pages/`;
+    const pagesHttpsUrl = config.baseUrl.replace(/^http:/, 'https:')
+      .replace(/:(\d+)/, `:${config.httpsPort}`)
+      + `/${owner}/${repoName}/pages/`;
 
     let forkSource: { owner_name: string; name: string } | null = null;
     if (repoRow.fork_of) {
@@ -290,6 +295,7 @@ router.get('/:owner/:repo', async (req: AuthedRequest, res: Response): Promise<v
       repoRow, owner, repoName, ownerRow, tree, branches, currentBranch,
       defaultBranch, commits, readme, lastCommits, starCount, forksCount,
       openIssues, openPrs, starred, cloneUrl, empty, forkSource,
+      hasPagesDeployment, pagesHttpUrl, pagesHttpsUrl,
     });
   });
 });
