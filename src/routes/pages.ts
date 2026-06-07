@@ -13,6 +13,50 @@ import hljs from 'highlight.js';
 
 const router = Router();
 
+// ── File display type detection ───────────────────────────────────────────────
+const IMAGE_EXTS = new Set(['.png','.jpg','.jpeg','.gif','.svg','.webp','.ico','.bmp','.avif','.tiff','.tif']);
+
+// Extensions that are always unrenderable binary blobs
+const BLOB_EXTS = new Set([
+  '.zip','.gz','.tar','.bz2','.xz','.7z','.rar','.zst',
+  '.jar','.war','.ear','.class',
+  '.exe','.dll','.so','.dylib','.bin','.out','.obj','.a','.lib',
+  '.iso','.img','.dmg','.deb','.rpm','.pkg','.msi','.apk','.ipa','.aab',
+  '.pdf',
+  '.doc','.docx','.xls','.xlsx','.ppt','.pptx','.odt','.ods','.odp',
+  '.mp3','.mp4','.avi','.mov','.mkv','.flv','.wmv','.webm','.m4v','.m4a',
+  '.wav','.ogg','.flac','.aac','.opus',
+  '.wasm','.pyc','.pyo','.pyd','.rbc',
+  '.ttf','.otf','.woff','.woff2','.eot',
+  '.db','.sqlite','.sqlite3',
+]);
+
+// Well-known text filenames with no extension
+const TEXT_NAMES = new Set([
+  'makefile','dockerfile','gemfile','rakefile','procfile','pipfile','brewfile',
+  'license','licence','readme','changelog','contributing','notice','authors',
+  'copying','todo','fixme','credits','history','install','news','thanks',
+  'vagrantfile','justfile','caddyfile','containerfile',
+  '.gitignore','.gitattributes','.gitmodules','.gitkeep',
+  '.env','.env.example','.env.local','.env.development','.env.production',
+  '.editorconfig','.eslintrc','.prettierrc','.babelrc','.browserslistrc',
+  '.stylelintrc','.npmrc','.nvmrc','.ruby-version','.python-version',
+  '.tool-versions','.travis.yml','.htaccess',
+]);
+
+function getFileDisplayType(basename: string, ext: string, buf: Buffer): 'text' | 'image' | 'binary' {
+  if (IMAGE_EXTS.has(ext)) return 'image';
+  if (BLOB_EXTS.has(ext)) return 'binary';
+  if (TEXT_NAMES.has(basename.toLowerCase())) return 'text';
+
+  // Heuristic: scan first 8 KB for null bytes (reliable binary indicator)
+  const sample = buf.slice(0, 8192);
+  for (let i = 0; i < sample.length; i++) {
+    if (sample[i] === 0) return 'binary';
+  }
+  return 'text'; // no null bytes → treat as text
+}
+
 function rp(owner: string, name: string) {
   return path.join(config.reposDir, owner, name + '.git');
 }
@@ -290,14 +334,20 @@ router.get('/:owner/:repo/blob/:branch/*', async (req: AuthedRequest, res: Respo
     try {
       const buf = await getFileContent(repoGitPath, branch, filePath);
       const ext = path.extname(filePath).toLowerCase();
-      const mime = getMimeType(ext);
+      const basename = path.basename(filePath);
+      const displayType = getFileDisplayType(basename, ext, buf);
 
-      if (mime.startsWith('image/') || mime === 'application/octet-stream') {
+      if (displayType === 'image') {
         isBinary = true;
+        const mime = getMimeType(ext);
         content = `data:${mime};base64,${buf.toString('base64')}`;
+      } else if (displayType === 'binary') {
+        isBinary = true;
+        content = '';
       } else {
         content = buf.toString('utf8');
-        const lang = ext.slice(1);
+        // Pick syntax highlighting language: ext, then basename (e.g. "Makefile"), then auto
+        const lang = ext.slice(1) || basename.toLowerCase();
         if (lang && hljs.getLanguage(lang)) {
           highlighted = hljs.highlight(content, { language: lang }).value;
         } else {

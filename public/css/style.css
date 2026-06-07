@@ -215,11 +215,20 @@ select.form-input { cursor: pointer; }
 
 /* ── Clone popup ─────────────────────────────────────────────────────────── */
 .clone-dropdown { position: relative; }
-.clone-popup { position: absolute; right: 0; top: calc(100% + 8px); background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; min-width: 340px; box-shadow: var(--shadow-md); display: none; z-index: 100; }
+.clone-popup { position: absolute; right: 0; top: calc(100% + 8px); background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; min-width: 380px; box-shadow: var(--shadow-md); display: none; z-index: 100; }
 .clone-popup.open { display: block; }
-.clone-label { font-size: 12px; font-weight: 600; margin-bottom: 8px; color: var(--text-muted); }
+.clone-label { font-size: 12px; font-weight: 600; margin-bottom: 8px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .04em; }
 .clone-url-row { display: flex; gap: 6px; }
-.clone-url-input { flex: 1; font-family: var(--font-mono); font-size: 12px; }
+.clone-url-input { flex: 1; font-family: var(--font-mono); font-size: 11px; }
+.clone-hint { margin-top: 10px; font-size: 12px; color: var(--text-muted); }
+.clone-hint p { margin-bottom: 4px; }
+.clone-trouble { margin-top: 8px; font-size: 12px; }
+.clone-trouble summary { cursor: pointer; color: var(--text-muted); font-size: 12px; padding: 4px 0; user-select: none; }
+.clone-trouble summary:hover { color: var(--text); }
+.clone-trouble-body { margin-top: 8px; padding: 10px 12px; background: var(--bg-secondary); border-radius: var(--radius-sm); border: 1px solid var(--border); }
+.clone-trouble-body p { margin-bottom: 6px; font-size: 12px; color: var(--text-muted); }
+.clone-trouble-body pre { font-size: 11px; background: var(--nav-bg); color: #e6edf3; padding: 8px 10px; border-radius: var(--radius-sm); overflow-x: auto; margin-bottom: 8px; border: none; }
+.clone-trouble-body pre code { background: none; border: none; padding: 0; color: inherit; font-size: inherit; }
 
 /* ── Latest commit bar ───────────────────────────────────────────────────── */
 .latest-commit-bar { display: flex; align-items: center; gap: 8px; padding: 8px 16px; background: var(--bg-secondary); border: 1px solid var(--border); border-top: none; font-size: 12px; }
@@ -370,7 +379,10 @@ select.form-input { cursor: pointer; }
 .empty-state { text-align: center; padding: 48px 24px; color: var(--text-muted); display: flex; flex-direction: column; align-items: center; gap: 12px; border: 1px solid var(--border); border-top: none; border-radius: 0 0 var(--radius) var(--radius); }
 .empty-repo { padding: 32px; border: 1px solid var(--border); border-radius: var(--radius); }
 .empty-repo h3 { margin-bottom: 8px; }
-.clone-instructions { background: var(--bg-secondary); border: 1px solid var(--border); padding: 20px; border-radius: var(--radius); font-size: 13px; line-height: 1.8; margin-top: 16px; overflow-x: auto; }
+.clone-instructions { background: #0d1117; color: #e6edf3; border: 1px solid var(--border); padding: 20px; border-radius: var(--radius); font-size: 13px; line-height: 1.8; margin-top: 16px; overflow-x: auto; }
+.empty-repo .clone-trouble { color: var(--text-muted); }
+.empty-repo .clone-trouble-body { margin-top: 8px; }
+.empty-repo .clone-trouble-body pre { white-space: pre; overflow-x: auto; }
 
 /* ── Repo settings ───────────────────────────────────────────────────────── */
 .token-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border-muted); }

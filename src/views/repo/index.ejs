@@ -20,12 +20,31 @@
       <% } else { %>
       <p>Push your first commit to this repository:</p>
       <% } %>
-      <pre class="clone-instructions">git clone <%= cloneUrl %>
+      <%
+        const cloneUrlWithUser = user
+          ? cloneUrl.replace('http://', `http://${user.username}@`)
+          : cloneUrl;
+      %>
+      <pre class="clone-instructions">git clone <%= cloneUrlWithUser %>
 cd <%= repoName %>
 echo "# <%= repoName %>" >> README.md
 git add README.md
 git commit -m "Initial commit"
 git push origin main</pre>
+      <% if (user) { %>
+      <details class="clone-trouble" style="margin-top:12px">
+        <summary>Authentication failed?</summary>
+        <div class="clone-trouble-body">
+          <p>Clear cached credentials and retry:</p>
+          <pre>git credential reject &lt;&lt;EOF
+protocol=http
+host=<%= cloneUrl.replace(/^https?:\/\//, '').split('/')[0] %>
+EOF</pre>
+          <p>Or embed credentials directly:</p>
+          <pre>git remote set-url origin http://<%= user.username %>:YOUR_PASSWORD@<%= cloneUrl.replace(/^https?:\/\//, '') %></pre>
+        </div>
+      </details>
+      <% } %>
     </div>
     <% } else { %>
 
@@ -60,9 +79,32 @@ git push origin main</pre>
               </button>
               <div class="clone-popup" id="clone-popup">
                 <p class="clone-label">Clone via HTTPS</p>
+                <%
+                  // Include username in URL so git uses the right credentials
+                  const cloneUrlAuth = user
+                    ? cloneUrl.replace('http://', `http://${user.username}@`)
+                    : cloneUrl;
+                %>
                 <div class="clone-url-row">
-                  <input type="text" class="clone-url-input" value="<%= cloneUrl %>" readonly id="clone-url-input">
+                  <input type="text" class="clone-url-input" value="<%= cloneUrlAuth %>" readonly id="clone-url-input">
                   <button class="btn btn-sm btn-ghost" onclick="copyCloneUrl()">Copy</button>
+                </div>
+                <div class="clone-hint">
+                  <% if (user) { %>
+                  <p>Use your ForgeLite password. Or generate a <a href="/<%= owner %>/<%= repoName %>/settings#tokens">Personal Access Token</a>.</p>
+                  <details class="clone-trouble">
+                    <summary>Authentication failed?</summary>
+                    <div class="clone-trouble-body">
+                      <p>Clear cached credentials for this server, then retry:</p>
+                      <pre>git credential reject &lt;&lt;EOF
+protocol=http
+host=<%= cloneUrl.replace(/^https?:\/\//, '').split('/')[0] %>
+EOF</pre>
+                      <p>Or set credentials directly in the remote URL:</p>
+                      <pre>git remote set-url origin http://<%= user.username %>:PASSWORD@<%= cloneUrl.replace(/^https?:\/\//, '') %></pre>
+                    </div>
+                  </details>
+                  <% } %>
                 </div>
               </div>
             </div>
