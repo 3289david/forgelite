@@ -1,0 +1,549 @@
+<%- include('_head', { title: 'Documentation' }) %>
+<main class="docs-page">
+  <div class="docs-layout">
+    <!-- Sidebar nav -->
+    <aside class="docs-sidebar">
+      <div class="docs-sidebar-title">Documentation</div>
+      <ul class="docs-nav">
+        <li><a href="#quickstart">Quick Start</a></li>
+        <li><a href="#config">Configuration</a></li>
+        <li class="docs-nav-group">
+          <div class="docs-sidebar-title" style="margin-top:0">Git CLI</div>
+        </li>
+        <li><a href="#clone">Clone &amp; Push</a></li>
+        <li><a href="#auth">Authentication</a></li>
+        <li><a href="#tokens">Access Tokens</a></li>
+        <li class="docs-nav-group">
+          <div class="docs-sidebar-title" style="margin-top:0">Web UI</div>
+        </li>
+        <li><a href="#repos">Repositories</a></li>
+        <li><a href="#issues">Issues</a></li>
+        <li><a href="#prs">Pull Requests</a></li>
+        <li><a href="#pages">Web Hosting</a></li>
+        <li class="docs-nav-group">
+          <div class="docs-sidebar-title" style="margin-top:0">API Reference</div>
+        </li>
+        <li><a href="#api-auth">Auth</a></li>
+        <li><a href="#api-repos">Repos</a></li>
+        <li><a href="#api-issues">Issues</a></li>
+        <li><a href="#api-prs">Pull Requests</a></li>
+        <li class="docs-nav-group">
+          <div class="docs-sidebar-title" style="margin-top:0">Self-Hosting</div>
+        </li>
+        <li><a href="#deploy">Deployment</a></li>
+        <li><a href="#nginx">Nginx</a></li>
+      </ul>
+    </aside>
+
+    <!-- Main content -->
+    <div class="docs-content">
+
+      <!-- ── Quick Start ── -->
+      <section id="quickstart">
+        <h2>Quick Start</h2>
+        <p>ForgeLite is a minimal, self-hostable Git hosting platform. It requires <strong>Node.js 22+</strong> (uses the built-in <code>node:sqlite</code> — no native dependencies) and <strong>Git</strong> installed on the server.</p>
+
+        <h3>Installation</h3>
+        <pre><code>git clone https://github.com/3289david/forgelite.git
+cd forgelite
+npm install
+cp .env.example .env</code></pre>
+
+        <p>Edit <code>.env</code> and set a strong <code>JWT_SECRET</code>. Then start:</p>
+        <pre><code># Development (hot reload)
+npm run dev
+
+# Production
+npm run build && npm start</code></pre>
+
+        <p>Open <a href="http://localhost:3000">http://localhost:3000</a>, register an account, and create your first repository.</p>
+      </section>
+
+      <!-- ── Configuration ── -->
+      <section id="config">
+        <h2>Configuration</h2>
+        <p>All configuration is via environment variables (or a <code>.env</code> file in the project root).</p>
+        <table class="docs-table">
+          <thead><tr><th>Variable</th><th>Default</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>PORT</code></td><td><code>3000</code></td><td>Port the server listens on</td></tr>
+            <tr><td><code>HOST</code></td><td><code>0.0.0.0</code></td><td>Bind address</td></tr>
+            <tr><td><code>JWT_SECRET</code></td><td><code>change-me</code></td><td><strong>Required in production.</strong> Long random string used to sign session tokens.</td></tr>
+            <tr><td><code>DATA_DIR</code></td><td><code>./data</code></td><td>Directory where the SQLite database and bare git repositories are stored</td></tr>
+            <tr><td><code>BASE_URL</code></td><td><code>http://localhost:3000</code></td><td>Publicly accessible URL — used in clone URLs shown in the UI</td></tr>
+          </tbody>
+        </table>
+        <div class="docs-callout"><strong>Security:</strong> Always set a long random <code>JWT_SECRET</code> in production. Use <code>openssl rand -hex 32</code> to generate one.</div>
+      </section>
+
+      <!-- ── Clone & Push ── -->
+      <section id="clone">
+        <h2>Clone &amp; Push</h2>
+        <p>ForgeLite implements the full <strong>Git HTTP smart protocol</strong> using <code>git http-backend</code>. All standard git operations work out of the box.</p>
+
+        <h3>Clone a repository</h3>
+        <pre><code>git clone http://localhost:3000/username/repo-name.git
+
+# Or with credentials inline
+git clone http://username:password@localhost:3000/username/repo-name.git</code></pre>
+
+        <h3>Push to a repository</h3>
+        <pre><code># First push (new branch)
+git push http://username:password@localhost:3000/username/repo.git main
+
+# Subsequent pushes (after setting remote)
+git remote add origin http://username:password@localhost:3000/username/repo.git
+git push origin main</code></pre>
+
+        <h3>Pull changes</h3>
+        <pre><code>git pull http://username:password@localhost:3000/username/repo.git main</code></pre>
+
+        <h3>Clone URL format</h3>
+        <pre><code>http://[username:password@]host/owner/repo-name.git</code></pre>
+        <p>The <code>.git</code> suffix is required. Omitting it will return the web UI page instead.</p>
+      </section>
+
+      <!-- ── Auth ── -->
+      <section id="auth">
+        <h2>Authentication</h2>
+        <p>ForgeLite supports two authentication methods for git CLI operations:</p>
+
+        <h3>Password authentication</h3>
+        <p>Use your ForgeLite username and account password directly in the git URL or when prompted:</p>
+        <pre><code>git clone http://alice:mypassword@localhost:3000/alice/myrepo.git</code></pre>
+
+        <h3>Personal Access Tokens</h3>
+        <p>Tokens are more secure than passwords — they can be revoked without changing your account password and are ideal for scripts and CI environments.</p>
+        <pre><code># Use token as the password
+git clone http://alice:flt_abc123...@localhost:3000/alice/myrepo.git</code></pre>
+        <p>Generate tokens in <strong>Repository Settings → Access Tokens</strong>. Tokens start with <code>flt_</code> and are shown only once at creation time.</p>
+
+        <h3>Storing credentials with git</h3>
+        <pre><code># Store credentials in macOS Keychain
+git config --global credential.helper osxkeychain
+
+# Store credentials in a file (Linux)
+git config --global credential.helper store
+
+# Then clone once — git will remember the credentials
+git clone http://alice@localhost:3000/alice/myrepo.git</code></pre>
+
+        <h3>Public repositories</h3>
+        <p>Public repositories can be cloned and fetched without any credentials. Pushing always requires authentication.</p>
+      </section>
+
+      <!-- ── Tokens ── -->
+      <section id="tokens">
+        <h2>Personal Access Tokens</h2>
+        <p>Personal Access Tokens (PATs) are the recommended way to authenticate git CLI operations in scripts, CI, and automation.</p>
+
+        <h3>Creating a token</h3>
+        <ol>
+          <li>Open any repository you own and go to <strong>Settings</strong></li>
+          <li>Scroll to <strong>Access Tokens</strong></li>
+          <li>Enter a descriptive name (e.g., <code>laptop</code>, <code>ci-deploy</code>) and click <strong>Generate token</strong></li>
+          <li>Copy the token immediately — it is shown only once</li>
+        </ol>
+        <div class="docs-callout"><strong>Important:</strong> Store the token securely. If you lose it, revoke it and create a new one. ForgeLite only stores a hash of the token and cannot retrieve the original value.</div>
+
+        <h3>Using a token</h3>
+        <pre><code># In git URL
+git clone http://alice:flt_yourtokenhere@localhost:3000/alice/repo.git
+
+# As environment variable (safer for scripts)
+GIT_ASKPASS="echo flt_yourtokenhere" git clone http://alice@localhost:3000/alice/repo.git</code></pre>
+
+        <h3>Revoking a token</h3>
+        <p>Go to <strong>Repository Settings → Access Tokens</strong> and click <strong>Revoke</strong> next to the token you want to remove.</p>
+      </section>
+
+      <!-- ── Repositories ── -->
+      <section id="repos">
+        <h2>Repositories</h2>
+        <p>Repositories are the core of ForgeLite. Each repository is stored as a bare git repo on disk at <code>DATA_DIR/repos/owner/repo-name.git</code>.</p>
+
+        <h3>Creating a repository</h3>
+        <p>Click <strong>+ New</strong> in the navbar or go to <a href="/new">/new</a>. Choose a name, optional description, and whether it's public or private.</p>
+
+        <h3>Forking</h3>
+        <p>Click the <strong>Fork</strong> button on any public repository to create your own copy. The fork is a full clone — you can push to it independently.</p>
+
+        <h3>Starring</h3>
+        <p>Star repositories to bookmark them. Star counts are visible on repository cards.</p>
+
+        <h3>Visibility</h3>
+        <ul>
+          <li><strong>Public</strong> — anyone can view and clone</li>
+          <li><strong>Private</strong> — only the owner can view, clone, or push</li>
+        </ul>
+        <p>Change visibility in <strong>Repository → Settings</strong>.</p>
+
+        <h3>Deleting a repository</h3>
+        <p>Go to <strong>Repository → Settings → Danger Zone</strong>. Type the repository name to confirm deletion. This permanently removes the git data and all issues/PRs from the database.</p>
+      </section>
+
+      <!-- ── Issues ── -->
+      <section id="issues">
+        <h2>Issues</h2>
+        <p>Issues track bugs, feature requests, and tasks. Any user can open an issue on a public repository.</p>
+
+        <h3>Opening an issue</h3>
+        <p>Go to <strong>Repository → Issues → New issue</strong>. Fill in a title and optional Markdown body.</p>
+
+        <h3>Comments</h3>
+        <p>Anyone signed in can comment on an issue. Comments support full Markdown including code blocks.</p>
+
+        <h3>Closing and reopening</h3>
+        <p>The issue author or repository owner can close or reopen an issue using the button below the comment form.</p>
+
+        <h3>Markdown in issues</h3>
+        <pre><code>## Bug description
+The widget crashes when clicking **Submit**.
+
+### Steps to reproduce
+1. Open the form
+2. Click Submit without filling required fields
+
+### Expected behavior
+Show a validation error.
+
+```js
+// Example code
+submitForm()
+```</code></pre>
+      </section>
+
+      <!-- ── Pull Requests ── -->
+      <section id="prs">
+        <h2>Pull Requests</h2>
+        <p>Pull requests let you propose changes from one branch and merge them into another. ForgeLite uses real <code>git merge</code> under the hood.</p>
+
+        <h3>Creating a pull request</h3>
+        <ol>
+          <li>Push your feature branch to the repository</li>
+          <li>Go to <strong>Repository → Pull Requests → New pull request</strong></li>
+          <li>Select the <strong>base branch</strong> (merge into) and the <strong>compare branch</strong> (your changes)</li>
+          <li>Add a title and description, then submit</li>
+        </ol>
+        <pre><code># Push your feature branch
+git push http://alice:token@localhost:3000/alice/myrepo.git feature/my-feature</code></pre>
+
+        <h3>Reviewing diffs</h3>
+        <p>Open PRs show a real unified diff of all changes between the base and compare branches. Lines are color-coded: <span style="color:var(--success)">green for additions</span> and <span style="color:var(--danger)">red for deletions</span>.</p>
+
+        <h3>Merging</h3>
+        <p>Only the repository owner can merge a pull request. Click <strong>Merge pull request</strong> to perform a <code>git merge</code>. If there are conflicts, the merge will be rejected with an error — resolve conflicts locally and push again.</p>
+
+        <h3>Closing without merging</h3>
+        <p>The PR author or repository owner can close a PR without merging by clicking <strong>Close pull request</strong>.</p>
+      </section>
+
+      <!-- ── Pages ── -->
+      <section id="pages">
+        <h2>Web Hosting (Pages)</h2>
+        <p>ForgeLite can serve any repository's <code>gh-pages</code> branch as a static website. No configuration required.</p>
+
+        <h3>Deploy your site</h3>
+        <pre><code># Create and switch to gh-pages branch
+git checkout -b gh-pages
+
+# Add your HTML/CSS/JS files
+echo "&lt;!DOCTYPE html&gt;&lt;html&gt;&lt;body&gt;&lt;h1&gt;My Site&lt;/h1&gt;&lt;/body&gt;&lt;/html&gt;" &gt; index.html
+git add .
+git commit -m "Deploy site"
+
+# Push to ForgeLite
+git push http://alice:token@localhost:3000/alice/myrepo.git gh-pages</code></pre>
+
+        <h3>Access your site</h3>
+        <p>Your site is immediately available at:</p>
+        <pre><code>http://localhost:3000/alice/myrepo/pages/</code></pre>
+
+        <h3>Supported file types</h3>
+        <table class="docs-table">
+          <thead><tr><th>Extension</th><th>MIME Type</th></tr></thead>
+          <tbody>
+            <tr><td><code>.html</code>, <code>.htm</code></td><td><code>text/html</code></td></tr>
+            <tr><td><code>.css</code></td><td><code>text/css</code></td></tr>
+            <tr><td><code>.js</code></td><td><code>application/javascript</code></td></tr>
+            <tr><td><code>.json</code></td><td><code>application/json</code></td></tr>
+            <tr><td><code>.png</code>, <code>.jpg</code>, <code>.gif</code>, <code>.webp</code></td><td>image/*</td></tr>
+            <tr><td><code>.svg</code></td><td><code>image/svg+xml</code></td></tr>
+            <tr><td><code>.woff</code>, <code>.woff2</code>, <code>.ttf</code></td><td>font/*</td></tr>
+            <tr><td><code>.mp4</code>, <code>.webm</code></td><td>video/*</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Directory index</h3>
+        <p>Requests to a path without an extension (e.g., <code>/pages/about</code>) automatically try <code>/about/index.html</code> and <code>/about.html</code>.</p>
+      </section>
+
+      <!-- ── API: Auth ── -->
+      <section id="api-auth">
+        <h2>API — Authentication</h2>
+        <p>All API endpoints return JSON. Authenticated endpoints require a valid session cookie obtained from <code>/api/auth/login</code>, or a <code>Bearer</code> token in the <code>Authorization</code> header.</p>
+
+        <h3>Register</h3>
+        <pre><code>POST /api/auth/register
+Content-Type: application/json
+
+{
+  "username": "alice",
+  "email": "alice@example.com",
+  "password": "securepassword"
+}
+
+→ 201 { "ok": true, "username": "alice" }</code></pre>
+
+        <h3>Login</h3>
+        <pre><code>POST /api/auth/login
+Content-Type: application/json
+
+{ "username": "alice", "password": "securepassword" }
+
+→ 200 { "ok": true }
+  Set-Cookie: token=eyJ... (HttpOnly)</code></pre>
+
+        <h3>Logout</h3>
+        <pre><code>POST /api/auth/logout
+→ 200 { "ok": true }</code></pre>
+
+        <h3>Current user</h3>
+        <pre><code>GET /api/auth/me
+→ 200 { "id": 1, "username": "alice", "email": "...", ... }</code></pre>
+
+        <h3>Create access token</h3>
+        <pre><code>POST /api/auth/tokens
+{ "name": "my-laptop" }
+
+→ 200 { "ok": true, "token": "flt_abc123...", "name": "my-laptop" }
+  ⚠ Token is shown only once</code></pre>
+
+        <h3>List / delete tokens</h3>
+        <pre><code>GET  /api/auth/tokens
+DELETE /api/auth/tokens/:id</code></pre>
+      </section>
+
+      <!-- ── API: Repos ── -->
+      <section id="api-repos">
+        <h2>API — Repositories</h2>
+        <table class="docs-table">
+          <thead><tr><th>Method</th><th>Path</th><th>Auth</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><span class="api-method method-get">GET</span></td><td><code>/api/repos</code></td><td>No</td><td>List public repositories</td></tr>
+            <tr><td><span class="api-method method-post">POST</span></td><td><code>/api/repos</code></td><td>Yes</td><td>Create a repository</td></tr>
+            <tr><td><span class="api-method method-get">GET</span></td><td><code>/api/repos/:owner/:repo</code></td><td>No*</td><td>Get repository details, star count, fork count</td></tr>
+            <tr><td><span class="api-method method-patch">PATCH</span></td><td><code>/api/repos/:owner/:repo</code></td><td>Owner</td><td>Update description, visibility</td></tr>
+            <tr><td><span class="api-method method-delete">DELETE</span></td><td><code>/api/repos/:owner/:repo</code></td><td>Owner</td><td>Delete repository permanently</td></tr>
+            <tr><td><span class="api-method method-post">POST</span></td><td><code>/api/repos/:owner/:repo/fork</code></td><td>Yes</td><td>Fork a repository</td></tr>
+            <tr><td><span class="api-method method-post">POST</span></td><td><code>/api/repos/:owner/:repo/star</code></td><td>Yes</td><td>Star a repository</td></tr>
+            <tr><td><span class="api-method method-delete">DELETE</span></td><td><code>/api/repos/:owner/:repo/star</code></td><td>Yes</td><td>Unstar a repository</td></tr>
+            <tr><td><span class="api-method method-get">GET</span></td><td><code>/api/repos/:owner/:repo/branches</code></td><td>No*</td><td>List branches</td></tr>
+            <tr><td><span class="api-method method-get">GET</span></td><td><code>/api/repos/:owner/:repo/commits/:branch</code></td><td>No*</td><td>List commits (up to 50)</td></tr>
+            <tr><td><span class="api-method method-get">GET</span></td><td><code>/api/repos/:owner/:repo/tree/:branch</code></td><td>No*</td><td>List directory contents</td></tr>
+          </tbody>
+        </table>
+        <p><em>* Private repositories require authentication as the owner.</em></p>
+
+        <h3>Create repository</h3>
+        <pre><code>POST /api/repos
+{
+  "name": "my-project",
+  "description": "Optional description",
+  "is_private": false,
+  "website": "https://example.com"
+}</code></pre>
+
+        <h3>Commit format</h3>
+        <pre><code>GET /api/repos/alice/myrepo/commits/main
+
+→ [
+  {
+    "hash": "abc1234...",
+    "shortHash": "abc1234",
+    "message": "Add feature X",
+    "author": "Alice",
+    "email": "alice@example.com",
+    "date": "2026-06-07T10:00:00+09:00"
+  }
+]</code></pre>
+      </section>
+
+      <!-- ── API: Issues ── -->
+      <section id="api-issues">
+        <h2>API — Issues</h2>
+        <table class="docs-table">
+          <thead><tr><th>Method</th><th>Path</th><th>Auth</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><span class="api-method method-get">GET</span></td><td><code>/api/repos/:owner/:repo/issues</code></td><td>No*</td><td>List issues. Filter: <code>?status=open|closed</code></td></tr>
+            <tr><td><span class="api-method method-post">POST</span></td><td><code>/api/repos/:owner/:repo/issues</code></td><td>Yes</td><td>Create an issue</td></tr>
+            <tr><td><span class="api-method method-get">GET</span></td><td><code>/api/repos/:owner/:repo/issues/:number</code></td><td>No*</td><td>Get issue + comments</td></tr>
+            <tr><td><span class="api-method method-patch">PATCH</span></td><td><code>/api/repos/:owner/:repo/issues/:number</code></td><td>Author/Owner</td><td>Update title, body, status</td></tr>
+            <tr><td><span class="api-method method-post">POST</span></td><td><code>/api/repos/:owner/:repo/issues/:number/comments</code></td><td>Yes</td><td>Add a comment</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Create issue</h3>
+        <pre><code>POST /api/repos/alice/myrepo/issues
+{ "title": "Button not working", "body": "## Steps\n1. Click button..." }
+
+→ 201 { "id": 5, "number": 1 }</code></pre>
+
+        <h3>Close/reopen an issue</h3>
+        <pre><code>PATCH /api/repos/alice/myrepo/issues/1
+{ "status": "closed" }   // or "open"</code></pre>
+      </section>
+
+      <!-- ── API: PRs ── -->
+      <section id="api-prs">
+        <h2>API — Pull Requests</h2>
+        <table class="docs-table">
+          <thead><tr><th>Method</th><th>Path</th><th>Auth</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><span class="api-method method-get">GET</span></td><td><code>/api/repos/:owner/:repo/pulls</code></td><td>No*</td><td>List PRs. Filter: <code>?status=open|closed|merged</code></td></tr>
+            <tr><td><span class="api-method method-post">POST</span></td><td><code>/api/repos/:owner/:repo/pulls</code></td><td>Yes</td><td>Create a pull request</td></tr>
+            <tr><td><span class="api-method method-get">GET</span></td><td><code>/api/repos/:owner/:repo/pulls/:number</code></td><td>No*</td><td>Get PR details, comments, and diff</td></tr>
+            <tr><td><span class="api-method method-patch">PATCH</span></td><td><code>/api/repos/:owner/:repo/pulls/:number</code></td><td>Author/Owner</td><td>Update title, body, or close</td></tr>
+            <tr><td><span class="api-method method-post">POST</span></td><td><code>/api/repos/:owner/:repo/pulls/:number/merge</code></td><td>Owner</td><td>Merge the pull request</td></tr>
+            <tr><td><span class="api-method method-post">POST</span></td><td><code>/api/repos/:owner/:repo/pulls/:number/comments</code></td><td>Yes</td><td>Add a review comment</td></tr>
+          </tbody>
+        </table>
+
+        <h3>Create a pull request</h3>
+        <pre><code>POST /api/repos/alice/myrepo/pulls
+{
+  "title": "Add authentication",
+  "body": "This PR adds JWT-based auth.",
+  "head_branch": "feature/auth",
+  "base_branch": "main"
+}
+
+→ 201 { "id": 3, "number": 1 }</code></pre>
+
+        <h3>Merge a pull request</h3>
+        <pre><code>POST /api/repos/alice/myrepo/pulls/1/merge
+
+→ 200 { "ok": true }
+// Conflict: 409 { "error": "Merge conflict — resolve conflicts manually" }</code></pre>
+      </section>
+
+      <!-- ── Deploy ── -->
+      <section id="deploy">
+        <h2>Self-Hosting — Deployment</h2>
+        <p>ForgeLite is a single Node.js process. Recommended production setup:</p>
+
+        <h3>System requirements</h3>
+        <ul>
+          <li>Node.js 22 or later</li>
+          <li>Git 2.x</li>
+          <li>~100 MB RAM minimum</li>
+          <li>Disk space proportional to your repositories</li>
+        </ul>
+
+        <h3>Production start</h3>
+        <pre><code># Build TypeScript
+npm run build
+
+# Start with environment variables
+PORT=3000 \
+JWT_SECRET="$(openssl rand -hex 32)" \
+DATA_DIR=/var/lib/forgelite \
+BASE_URL=https://git.yourdomain.com \
+node dist/server.js</code></pre>
+
+        <h3>systemd service</h3>
+        <pre><code># /etc/systemd/system/forgelite.service
+[Unit]
+Description=ForgeLite Git Hosting
+After=network.target
+
+[Service]
+Type=simple
+User=forgelite
+WorkingDirectory=/opt/forgelite
+ExecStart=/usr/bin/node dist/server.js
+Restart=always
+Environment=PORT=3000
+Environment=JWT_SECRET=your-secret-here
+Environment=DATA_DIR=/var/lib/forgelite
+Environment=BASE_URL=https://git.yourdomain.com
+
+[Install]
+WantedBy=multi-user.target</code></pre>
+        <pre><code>systemctl enable --now forgelite</code></pre>
+
+        <h3>Data directory</h3>
+        <p>All data is stored in <code>DATA_DIR</code>:</p>
+        <pre><code>/var/lib/forgelite/
+  forgelite.db          # SQLite database (users, repos, issues, PRs)
+  repos/
+    alice/
+      my-project.git/   # Bare git repository
+    bob/
+      another-repo.git/</code></pre>
+        <p>Back up the entire <code>DATA_DIR</code> to preserve everything.</p>
+      </section>
+
+      <!-- ── Nginx ── -->
+      <section id="nginx">
+        <h2>Self-Hosting — Nginx Reverse Proxy</h2>
+        <p>Run Nginx in front of ForgeLite for SSL termination and efficient static file serving.</p>
+
+        <pre><code># /etc/nginx/sites-available/forgelite
+server {
+    listen 80;
+    server_name git.yourdomain.com;
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name git.yourdomain.com;
+
+    ssl_certificate     /etc/letsencrypt/live/git.yourdomain.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/git.yourdomain.com/privkey.pem;
+
+    # Increase body size for git push of large repos
+    client_max_body_size 100m;
+
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        # Required for git smart HTTP protocol
+        proxy_buffering off;
+        proxy_request_buffering off;
+    }
+}</code></pre>
+
+        <pre><code>ln -s /etc/nginx/sites-available/forgelite /etc/nginx/sites-enabled/
+nginx -t && systemctl reload nginx</code></pre>
+
+        <h3>SSL with Let's Encrypt</h3>
+        <pre><code>certbot --nginx -d git.yourdomain.com</code></pre>
+
+        <div class="docs-callout"><strong>Note:</strong> Set <code>BASE_URL=https://git.yourdomain.com</code> in your environment so that clone URLs displayed in the web UI use the correct public address.</div>
+      </section>
+
+    </div><!-- /docs-content -->
+  </div><!-- /docs-layout -->
+</main>
+<%- include('_foot') %>
+<script>
+// Highlight active section in sidebar
+const sections = document.querySelectorAll('.docs-content section[id]');
+const navLinks = document.querySelectorAll('.docs-nav a');
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      navLinks.forEach(l => l.classList.remove('active'));
+      const link = document.querySelector('.docs-nav a[href="#' + e.target.id + '"]');
+      if (link) link.classList.add('active');
+    }
+  });
+}, { rootMargin: '-20% 0px -70% 0px' });
+sections.forEach(s => observer.observe(s));
+</script>

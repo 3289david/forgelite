@@ -52,6 +52,22 @@ function diffToHtml(diff: ReturnType<typeof parseDiff>): string {
   return html || '<div class="empty-diff">No changes</div>';
 }
 
+// ── Docs ─────────────────────────────────────────────────────────────────────
+router.get('/docs', (_req: Request, res: Response) => {
+  res.render('docs');
+});
+
+// ── Explore ───────────────────────────────────────────────────────────────────
+router.get('/explore', (_req: Request, res: Response) => {
+  const repos = getDb().prepare(`
+    SELECT r.*, u.username as owner_name,
+      (SELECT COUNT(*) FROM stars WHERE repo_id = r.id) as star_count
+    FROM repositories r JOIN users u ON u.id = r.owner_id
+    WHERE r.is_private = 0 ORDER BY r.updated_at DESC LIMIT 100
+  `).all();
+  res.render('explore', { repos });
+});
+
 // ── Landing ──────────────────────────────────────────────────────────────────
 router.get('/', (req: AuthedRequest, res: Response) => {
   if (req.user) { res.redirect(`/${req.user.username}`); return; }
