@@ -710,18 +710,25 @@ router.post('/:owner/:repo/delete-file/:branch/*', requireAuth, async (req: Auth
 });
 
 // ── Static site hosting ────────────────────────────────────────────────────────
-router.get('/:owner/:repo/pages', (req: Request, res: Response) => {
-  res.redirect(`/${req.params.owner}/${req.params.repo}/pages/`);
-});
+// Single regex route avoids Express non-strict routing redirect loops.
+// Matches /owner/repo/pages and /owner/repo/pages/... exactly.
+router.get(/^\/([^/]+)\/([^/]+)\/pages(\/.*)?$/, async (req: AuthedRequest, res: Response): Promise<void> => {
+  const params = req.params as unknown as string[];
+  const owner = params[0];
+  const repo  = params[1];
+  const suffix = params[2]; // undefined → no trailing slash; '/' → root; '/foo' → file
 
-router.get('/:owner/:repo/pages/*', async (req: AuthedRequest, res: Response): Promise<void> => {
-  const { owner, repo } = req.params;
-  const filePath = ((req.params as Record<string, string>)[0] || 'index.html').replace(/^\//, '');
+  if (!suffix) {
+    res.redirect(`/${owner}/${repo}/pages/`);
+    return;
+  }
+
   const repoRow = getRepoAndOwner(owner, repo, req.user?.id);
   if (!repoRow) { res.status(404).end('Not found'); return; }
 
   const repoGitPath = rp(owner, repo);
   const branch = 'gh-pages';
+  const filePath = suffix.replace(/^\//, '') || 'index.html';
 
   const tryFile = async (fp: string): Promise<boolean> => {
     try {
